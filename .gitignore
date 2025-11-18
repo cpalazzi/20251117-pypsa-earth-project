@@ -1,0 +1,31 @@
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments & installers
+.env/
+.venv/
+env/
+envs/
+venv/
+pip-wheel-metadata/
+*.egg-info/
+
+# ARC / Snakemake artifacts
+results/
+logs/
+**/slurm-*.out
+**/slurm-*.err
+.snakejob.*
+.snakemake/
+.metadata/
+
+# Backups
+*.bak
+*.swp

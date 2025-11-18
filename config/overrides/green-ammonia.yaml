@@ -1,0 +1,41 @@
+# Layer this file on top of config/default-single-timestep.yaml to inject the
+# green-ammonia supply chain and keep outputs in a dedicated results folder.
+
+run:
+  name: europe-green-ammonia
+  shared_cutouts: true
+
+solving:
+  options:
+    extra_functionality:
+      - scripts/extra/green_ammonia.py::add_green_ammonia
+
+custom:
+  green_ammonia:
+    enable: true
+    country_code: "ES"
+    location:
+      latitude: 37.41
+      longitude: -5.98
+      bus_substring: "ES"
+    electrolyser:
+      efficiency: 0.62     # kg-NH3 per kWh_elec (converted inside the helper)
+      capital_cost: 750000  # EUR/MW of electrical capacity
+      marginal_cost: 1.0    # EUR/MWh consumed
+      p_nom_max: 1000       # MW cap; set to null for unconstrained
+      lifetime: 20
+    storage:
+      capital_cost: 150000  # EUR/MWh of stored NH3 energy-equivalent
+      standing_loss: 0.0002 # 0.02% per hour
+      e_nom_max: 4000       # MWh cap
+      e_cyclic: true
+    ccgt:
+      efficiency: 0.55
+      capital_cost: 900000  # EUR/MW_elec
+      marginal_cost: 2.5    # EUR/MWh of output (maintenance + cracking penalty)
+      p_nom_max: 1000
+      lifetime: 25
+    carriers:
+      ammonia: "NH3"
+      to_power: "NH3->power"
+      to_store: "NH3-store"
