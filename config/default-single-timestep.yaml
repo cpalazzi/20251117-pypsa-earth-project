@@ -15,7 +15,7 @@ run:
 results_dir: results/
 summary_dir: results/
 
-countries: ["Europe"]
+regions: ["Europe"]
 
 snapshots:
   start: "2013-01-01 00:00"

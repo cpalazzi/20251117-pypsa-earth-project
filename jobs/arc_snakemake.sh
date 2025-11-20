@@ -17,6 +17,9 @@ if [[ $# -ne 1 ]]; then
   exit 2
 fi
 
+# Scenario name (used for log filenames)
+SCENARIO="$1"
+
 module restore 2>/dev/null || true
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2023.09"}
 module load "$ANACONDA_MODULE"
@@ -28,9 +31,19 @@ source activate "$TOOLS_ENV"
 eval "$(micromamba shell hook --shell bash)"
 micromamba activate "$PYPSA_ENV"
 
-WORKDIR=${ARC_WORKDIR:-"$SLURM_SUBMIT_DIR"}
+# Determine a sensible default working directory: prefer ARC_WORKDIR, then
+# SLURM_SUBMIT_DIR (where sbatch was invoked), otherwise fall back to the
+# repository root (parent of this `jobs/` script). This makes the job more
+# robust if it is submitted from a different location.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+WORKDIR=${ARC_WORKDIR:-${SLURM_SUBMIT_DIR:-$DEFAULT_WORKDIR}}
 cd "$WORKDIR"
 mkdir -p logs
+
+# Central logfile for this run
+LOGFILE="logs/snakemake-${SCENARIO}-$(date +%Y%m%d-%H%M%S).log"
+echo "Snakemake log: $LOGFILE"
 
 MEM_MB=${SLURM_MEM_PER_NODE:-48000}
 CPUS=${SLURM_CPUS_PER_TASK:-16}
@@ -54,12 +67,13 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
 fi
 
 run_snakemake() {
-  snakemake -call \
+  snakemake \
     "$@" \
     "${EXTRA_ARGS[@]}" \
     -j "${CPUS}" \
     --resources mem_mb="${MEM_MB}" \
-    --keep-going --rerun-incomplete
+    --keep-going --rerun-incomplete --printshellcmds \
+    --stats "logs/snakemake-${SCENARIO}.stats.json" 2>&1 | tee -a "$LOGFILE"
 }
 
 case "$1" in
