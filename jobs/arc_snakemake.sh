@@ -64,13 +64,13 @@ run_snakemake() {
 
 case "$1" in
   baseline)
-    run_snakemake --configfile config/default-single-timestep.yaml solve_network
+    run_snakemake solve_network --configfile config/default-single-timestep.yaml
     ;;
   green-ammonia)
     run_snakemake \
+      solve_network \
       --configfile config/default-single-timestep.yaml \
-      --configfile config/overrides/green-ammonia.yaml \
-      solve_network
+      --configfile config/overrides/green-ammonia.yaml
     ;;
   *)
     echo "Unknown scenario '$1'" >&2
