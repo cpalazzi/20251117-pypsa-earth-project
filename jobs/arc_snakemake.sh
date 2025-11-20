@@ -54,34 +54,23 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
 fi
 
 run_snakemake() {
-  local target=${ARC_SNAKE_TARGET:-}
-  if [[ -n "$target" ]]; then
-    snakemake -call "$target" \
-      "$@" \
-      "${EXTRA_ARGS[@]}" \
-      -j "${CPUS}" \
-      --resources mem_mb="${MEM_MB}" \
-      --keep-going --rerun-incomplete
-  else
-    snakemake -call \
-      "$@" \
-      "${EXTRA_ARGS[@]}" \
-      -j "${CPUS}" \
-      --resources mem_mb="${MEM_MB}" \
-      --keep-going --rerun-incomplete
-  fi
+  snakemake -call \
+    "$@" \
+    "${EXTRA_ARGS[@]}" \
+    -j "${CPUS}" \
+    --resources mem_mb="${MEM_MB}" \
+    --keep-going --rerun-incomplete
 }
 
 case "$1" in
   baseline)
-    export ARC_SNAKE_TARGET=${ARC_SNAKE_TARGET:-"results/europe-single-hour/networks/base_s_37_elec_.nc"}
-    run_snakemake --configfile config/default-single-timestep.yaml
+    run_snakemake --configfile config/default-single-timestep.yaml solve_network
     ;;
   green-ammonia)
-    export ARC_SNAKE_TARGET=${ARC_SNAKE_TARGET:-"results/europe-green-ammonia/networks/base_s_37_elec_.nc"}
     run_snakemake \
       --configfile config/default-single-timestep.yaml \
-      --configfile config/overrides/green-ammonia.yaml
+      --configfile config/overrides/green-ammonia.yaml \
+      solve_network
     ;;
   *)
     echo "Unknown scenario '$1'" >&2
