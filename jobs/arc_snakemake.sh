@@ -47,6 +47,7 @@ echo "Snakemake log: $LOGFILE"
 
 MEM_MB=${SLURM_MEM_PER_NODE:-48000}
 CPUS=${SLURM_CPUS_PER_TASK:-16}
+LATENCY_WAIT=${ARC_SNAKE_LATENCY_WAIT:-60}
 EXTRA_ARGS=()
 if [[ "${ARC_SNAKE_DRYRUN:-0}" == "1" ]]; then
   EXTRA_ARGS+=("-n")
@@ -62,7 +63,8 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
   done
   if [[ ${#stage_targets[@]} -gt 0 ]]; then
     snakemake --cores "$CPUS" "${stage_targets[@]}" \
-      --resources mem_mb="$MEM_MB" --keep-going --rerun-incomplete
+      --resources mem_mb="$MEM_MB" --keep-going --rerun-incomplete \
+      --latency-wait "$LATENCY_WAIT"
   fi
 fi
 
@@ -72,6 +74,7 @@ run_snakemake() {
     "${EXTRA_ARGS[@]}" \
     -j "${CPUS}" \
     --resources mem_mb="${MEM_MB}" \
+    --latency-wait "${LATENCY_WAIT}" \
     --keep-going --rerun-incomplete --printshellcmds \
     --stats "logs/snakemake-${SCENARIO}.stats.json" 2>&1 | tee -a "$LOGFILE"
 }
