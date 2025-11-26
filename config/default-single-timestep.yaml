@@ -23,7 +23,7 @@ countries:
   - "BE"
   - "BG"
   - "CH"
-  - "CY"
+  # - "CY"  # non-default country
   - "CZ"
   - "DE"
   - "DK"
@@ -51,8 +51,8 @@ countries:
   - "SE"
   - "SI"
   - "SK"
-  - "TR"
-  - "UA"
+  # - "TR"  # non-default country
+  # - "UA"  # non-default country
   - "XK"
 
 snapshots:
@@ -72,7 +72,7 @@ enable:
 scenario:
   simpl: [""]
   ll: ["copt"]
-  clusters: [110]
+  clusters: [50]
   opts: ["Co2L-3h"]
 
 atlite:
