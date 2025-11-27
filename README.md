@@ -18,10 +18,10 @@ The files in this repo are meant to be layered on top of an official [`pypsa-ear
    cd pypsa-earth
    ```
 
-2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the `config/`, `scripts/`, and `jobs/` folders into PyPSA-Earth. For example:
+2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the `config/` and `scripts/` folders into PyPSA-Earth (the Slurm helpers now live under `scripts/arc/jobs/`). For example:
 
    ```zsh
-   rsync -av ../20251117-pypsa-earth-project/{config,scripts,jobs} ./
+   rsync -av ../20251117-pypsa-earth-project/{config,scripts} ./
    ```
 
 3. Create/activate the PyPSA-Earth environment (use the provided micromamba-based Slurm script so you do not have to babysit a long interactive job).
@@ -126,7 +126,7 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
    - clustering to 37 buses,
    - a single snapshot (`2013-01-01 00:00Z`),
    - HiGHS as the solver with low memory needs,
-   - a unique run name: `run.name = europe-single-hour`.
+   - a unique run name: `run.name = europe`.
 
 > First-time runs need to download cutouts, osm extracts, and databundles (tens of GB). To get that out of the way, run `snakemake --cores 8 retrieve_databundle_light download_osm_data build_cutout` (or submit the batch script with `ARC_STAGE_DATA=1`) before attempting the full solve.
 
@@ -145,7 +145,7 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
      -j 16 --resources mem_mb=32000 --keep-going --rerun-incomplete
    ```
 
-4. The solved network will appear at `results/europe-single-hour/networks/base_s_37_elec_.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
+4. The solved network will appear at `results/europe/networks/elec_s_37_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
 
 ### 4. Green ammonia scenario
 
@@ -172,13 +172,13 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 
 ### 5. Submitting through ARC Slurm
 
-The helper script `jobs/arc_snakemake.sh` wraps the Snakemake commands in a Slurm batch job. It now activates the micromamba-managed environment (via the `conda-tools` helper), can optionally pre-stage the large data downloads, and understands a dry-run mode. Submit as follows (override the partition/time on the command line when you expect long data transfers):
+The helper script `scripts/arc/jobs/arc_snakemake.sh` wraps the Snakemake commands in a Slurm batch job. It now activates the micromamba-managed environment (via the `conda-tools` helper), can optionally pre-stage the large data downloads, and understands a dry-run mode. Submit as follows (override the partition/time on the command line when you expect long data transfers):
 
 ```zsh
 ARC_STAGE_DATA=1 ARC_SNAKE_DRYRUN=1 \
-   sbatch --partition=long --time=24:00:00 jobs/arc_snakemake.sh baseline   # first run: download + dry-run
-sbatch jobs/arc_snakemake.sh baseline                                      # full solve once data exist
-sbatch jobs/arc_snakemake.sh green-ammonia                                 # stress-test scenario
+   sbatch --partition=long --time=24:00:00 scripts/arc/jobs/arc_snakemake.sh baseline   # first run: download + dry-run
+sbatch scripts/arc/jobs/arc_snakemake.sh baseline                                      # full solve once data exist
+sbatch scripts/arc/jobs/arc_snakemake.sh green-ammonia                                 # stress-test scenario
 ```
 
 The script accepts a single argument (`baseline` or `green-ammonia`) and selects the right Snakemake command plus config stack.
@@ -190,7 +190,7 @@ Environment/module tips for ARC submissions:
 - Set `ARC_CONDA_TOOLS=/data/.../envs/conda-tools` and `ARC_PYPSA_ENV=/data/.../envs/pypsa-earth-env` if your helper environments live in a different directory.
 - Set `ARC_STAGE_DATA=1` to have the job run `retrieve_databundle_light`/`download_osm_data` (and `build_cutout` if enabled) *before* solving.
 - Set `ARC_SNAKE_DRYRUN=1` to have the final Snakemake call pass `-n` so you can inspect the DAG without running any rules.
-- If you need extra solver modules (e.g. `module load Gurobi/11.0.3`), add them near the top of `jobs/arc_snakemake.sh` just after the Anaconda load.
+- If you need extra solver modules (e.g. `module load Gurobi/11.0.3`), add them near the top of `scripts/arc/jobs/arc_snakemake.sh` just after the Anaconda load.
 
 ### 6. Validating outputs
 
@@ -209,7 +209,7 @@ Add a small plotting notebook (e.g. `notebooks/compare_runs.ipynb`) if you want 
 | `config/default-single-timestep.yaml` | Baseline overrides for a Europe-wide, single-snapshot PyPSA-Earth run. |
 | `config/overrides/green-ammonia.yaml` | Layered config that injects the ammonia assets and switches the output directories. |
 | `scripts/extra/green_ammonia.py` | Extra-functionality hook loaded by Snakemake to add the electrolyser, store, and ammonia CCGT components. |
-| `jobs/arc_snakemake.sh` | Slurm helper for ARC – wraps module loads, environment activation, and the relevant Snakemake commands. |
+| `scripts/arc/jobs/arc_snakemake.sh` | Slurm helper for ARC – wraps module loads, environment activation, and the relevant Snakemake commands. |
 
 Feel free to extend this repo with additional overrides (longer time slices, different nodes, capacity-value sweeps, etc.).
 

@@ -13,7 +13,7 @@
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-  echo "Usage: sbatch jobs/arc_snakemake.sh <baseline|green-ammonia>" >&2
+  echo "Usage: sbatch scripts/arc/jobs/arc_snakemake.sh <baseline|green-ammonia>" >&2
   exit 2
 fi
 
@@ -33,10 +33,9 @@ micromamba activate "$PYPSA_ENV"
 
 # Determine a sensible default working directory: prefer ARC_WORKDIR, then
 # SLURM_SUBMIT_DIR (where sbatch was invoked), otherwise fall back to the
-# repository root (parent of this `jobs/` script). This makes the job more
-# robust if it is submitted from a different location.
+# repository root (three directories above this `scripts/arc/jobs/` folder).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WORKDIR=${ARC_WORKDIR:-${SLURM_SUBMIT_DIR:-$DEFAULT_WORKDIR}}
 cd "$WORKDIR"
 mkdir -p logs
@@ -45,7 +44,7 @@ mkdir -p logs
 LOGFILE="logs/snakemake-${SCENARIO}-$(date +%Y%m%d-%H%M%S).log"
 echo "Snakemake log: $LOGFILE"
 
-MEM_MB=${SLURM_MEM_PER_NODE:-48000}
+MEM_MB=${SLURM_MEM_PER_NODE:-256000}
 CPUS=${SLURM_CPUS_PER_TASK:-16}
 LATENCY_WAIT=${ARC_SNAKE_LATENCY_WAIT:-60}
 EXTRA_ARGS=()

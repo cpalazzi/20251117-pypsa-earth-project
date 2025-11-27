@@ -1,6 +1,6 @@
-# Minimal overrides for a continental Europe electricity-only run with a single snapshot.
-# Copy this file into the root of your pypsa-earth checkout (next to config.yaml) and
-# pass it to snakemake with `--configfile config/default-single-timestep.yaml`.
+# Full-year configuration with 3-hour snapshot aggregation and an explicit zero CO2 budget.
+# Mirrors config/default-single-timestep.yaml but spans all of 2013 before applying the
+# Co2L-3h option preset. Use with `snakemake --configfile config/yearly-threehour-zero-co2.yaml`.
 
 version: 0.7.0
 foresight: overnight
@@ -8,7 +8,7 @@ foresight: overnight
 tutorial: false
 
 run:
-  name: europe
+  name: europe-yearly-3h-zero
   sector_name: ""
   shared_cutouts: true
 
@@ -23,7 +23,7 @@ countries:
   - "BE"
   - "BG"
   - "CH"
-  # - "CY"  # non-default country
+  # - "CY"
   - "CZ"
   - "DE"
   - "DK"
@@ -51,15 +51,15 @@ countries:
   - "SE"
   - "SI"
   - "SK"
-  # - "TR"  # non-default country
-  # - "UA"  # non-default country
+  # - "TR"
+  # - "UA"
   - "XK"
 
 snapshots:
   start: "2013-01-01 00:00"
-  end: "2013-01-01 03:00"
+  end: "2014-01-01 00:00"   # exclusive because inclusive=left
   inclusive: "left"
-  # Leave out 'resolution' or 'freq' here; pipeline supplies freq="h" explicitly.
+  # Leave out 'resolution' or 'freq'; pipeline supplies freq="h" and the -3h option aggregates later.
 
 enable:
   retrieve_databundle: true
@@ -74,7 +74,7 @@ scenario:
   ll: ["copt"]
   clusters: [140]
   opts:
-    - "Co2L-3h"  # Co2L applies the PyPSA-Earth CO2 cap preset; -3h coarsens hourly snapshots into 3 h blocks
+    - "Co2L-3h"  # Co2L applies the PyPSA-Earth CO2 cap preset; -3h coarsens snapshots into 3 h blocks
 
 clustering:
   focus_weights:
@@ -95,7 +95,7 @@ atlite:
       module: era5
       dx: 0.3
       dy: 0.3
-      time: ["2013-01-01", "2013-01-02"]
+      time: ["2013-01-01", "2014-01-01"]
   default_cutout: cutout-2013-era5
 
 load_options:
@@ -117,7 +117,7 @@ solving:
   solver:
     name: highs
     options: highs-default
-  mem: 24000
+  mem: 48000  # double memory for year-long run
 
 logging:
   level: INFO
@@ -126,3 +126,10 @@ plotting:
   map:
     boundaries: [-11.0, 30.0, 34.0, 72.0]
     figsize: [7, 7]
+
+global_constraints:
+  - name: CO2LimitZero
+    sense: "<="
+    type: "primary_energy"
+    carrier_attribute: "co2_emissions"
+    constant: 0.0  # enforce zero operational CO2 across the model horizon

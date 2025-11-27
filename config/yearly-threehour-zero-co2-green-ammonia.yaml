@@ -1,0 +1,162 @@
+# Full-year configuration with 3-hour snapshot aggregation, zero CO2 budget,
+# and the custom green-ammonia chain described in scripts/extra/green_ammonia.py.
+# Use via `snakemake --configfile config/yearly-threehour-zero-co2-green-ammonia.yaml`.
+
+version: 0.7.0
+foresight: overnight
+
+tutorial: false
+
+run:
+  name: europe-yearly-3h-zero-green-ammonia
+  sector_name: ""
+  shared_cutouts: true
+
+results_dir: results/
+summary_dir: results/
+
+regions: ["europe"]
+countries:
+  - "AL"
+  - "AT"
+  - "BA"
+  - "BE"
+  - "BG"
+  - "CH"
+  - "CZ"
+  - "DE"
+  - "DK"
+  - "EE"
+  - "ES"
+  - "FI"
+  - "FR"
+  - "GB"
+  - "GR"
+  - "HR"
+  - "HU"
+  - "IE"
+  - "IT"
+  - "LT"
+  - "LU"
+  - "LV"
+  - "ME"
+  - "MK"
+  - "NL"
+  - "NO"
+  - "PL"
+  - "PT"
+  - "RO"
+  - "RS"
+  - "SE"
+  - "SI"
+  - "SK"
+  - "XK"
+
+snapshots:
+  start: "2013-01-01 00:00"
+  end: "2014-01-01 00:00"
+  inclusive: "left"
+
+scenario:
+  simpl: [""]
+  ll: ["copt"]
+  clusters: [140]
+  opts:
+    - "Co2L-3h"
+
+solving:
+  options:
+    formulation: kirchhoff
+    load_shedding: 500.
+    noisy_costs: false
+    clip_p_max_pu: 0.01
+    min_iterations: 1
+    max_iterations: 2
+    skip_iterations: true
+    track_iterations: false
+    extra_functionality:
+      - scripts/extra/green_ammonia.py::add_green_ammonia
+  solver:
+    name: highs
+    options: highs-default
+  mem: 48000
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  download_osm_data: true
+  build_natura_raster: false
+  build_cutout: false
+
+atlite:
+  nprocesses: 4
+  cutouts:
+    cutout-2013-era5:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      time: ["2013-01-01", "2014-01-01"]
+  default_cutout: cutout-2013-era5
+
+load_options:
+  ssp: "ssp2-2.6"
+  weather_year: 2013
+  prediction_year: 2030
+  scale: 1
+
+clustering:
+  focus_weights:
+    DE: 0.035
+    FR: 0.035
+    GB: 0.035
+    IT: 0.035
+    ES: 0.035
+    PL: 0.025
+    NO: 0.015
+    SE: 0.02
+    NL: 0.015
+
+logging:
+  level: INFO
+
+plotting:
+  map:
+    boundaries: [-11.0, 30.0, 34.0, 72.0]
+    figsize: [7, 7]
+
+global_constraints:
+  - name: CO2LimitZero
+    sense: "<="
+    type: "primary_energy"
+    carrier_attribute: "co2_emissions"
+    constant: 0.0
+
+custom:
+  green_ammonia:
+    enable: true
+    country_code: "ES"
+    location:
+      latitude: 37.41
+      longitude: -5.98
+      bus_substring: "ES"
+    carriers:
+      ammonia: "NH3"
+      to_store: "NH3-to-store"
+      to_power: "NH3-to-power"
+    electrolyser:
+      efficiency: 0.622
+      capital_cost: 883000    # EUR/MW (883 EUR/kW) to match Calliope input
+      marginal_cost: 0.0
+      p_nom_max: null
+      lifetime: 25
+    storage:
+      capital_cost: 82432     # EUR/MWh (0.082432 EUR/kWh)
+      standing_loss: 0.0
+      e_nom_max: null
+      e_cyclic: true
+    ccgt:
+      efficiency: 0.55
+      capital_cost: 883000
+      marginal_cost: 0.0
+      p_nom_max: null
+      lifetime: 25
