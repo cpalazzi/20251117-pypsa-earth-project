@@ -12,13 +12,23 @@
 
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: sbatch scripts/arc/jobs/arc_snakemake.sh <baseline|green-ammonia>" >&2
+if [[ $# -lt 2 ]]; then
+  echo "Usage: sbatch scripts/arc/jobs/arc_snakemake.sh <run-label> <configfile> [configfile ...]" >&2
+  echo "Example: sbatch scripts/arc/jobs/arc_snakemake.sh 20251126-baseline config/default-single-timestep.yaml" >&2
+  echo "         sbatch scripts/arc/jobs/arc_snakemake.sh 20251126-green config/default-single-timestep.yaml config/overrides/green-ammonia.yaml" >&2
   exit 2
 fi
 
-# Scenario name (used for log filenames)
+# Scenario name (used for log filenames). Recommend yyyyMMdd-tag style, e.g.
+# 20251126-baseline or 20251126-europe-3h-green, so ARC logs stay ordered.
 SCENARIO="$1"
+shift
+
+CONFIG_FILES=("$@")
+CONFIG_ARGS=()
+for cfg in "${CONFIG_FILES[@]}"; do
+  CONFIG_ARGS+=("--configfile" "$cfg")
+done
 
 module restore 2>/dev/null || true
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2023.09"}
@@ -85,18 +95,4 @@ run_snakemake() {
     --stats "logs/snakemake-${SCENARIO}.stats.json" 2>&1 | tee -a "$LOGFILE"
 }
 
-case "$1" in
-  baseline)
-    # Use a high-level rule so Snakemake resolves all required outputs per config
-    run_snakemake solve_all_networks --configfile config/default-single-timestep.yaml
-    ;;
-  green-ammonia)
-    run_snakemake solve_all_networks \
-      --configfile config/default-single-timestep.yaml \
-      --configfile config/overrides/green-ammonia.yaml
-    ;;
-  *)
-    echo "Unknown scenario '$1'" >&2
-    exit 3
-    ;;
-esac
+run_snakemake solve_all_networks "${CONFIG_ARGS[@]}"
