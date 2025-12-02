@@ -18,10 +18,11 @@ The files in this repo are meant to be layered on top of an official [`pypsa-ear
    cd pypsa-earth
    ```
 
-2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the overlay files. Keep the run configs under `config/`, drop helper scripts under `scripts/`, and place the Slurm launcher under PyPSA-Earth’s `jobs/` tree so Snakemake finds it where it expects job scripts:
+2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the overlay files. Keep the run configs under `config/`, drop helper scripts under `scripts/extra/`, and place the Slurm launcher under PyPSA-Earth’s `jobs/` tree so Snakemake finds it where it expects job scripts:
 
    ```zsh
-   rsync -av ../20251117-pypsa-earth-project/{config,scripts} ./
+   rsync -av ../20251117-pypsa-earth-project/config/ ./config/
+   rsync -av ../20251117-pypsa-earth-project/scripts/extra/ ./scripts/extra/
    rsync -av ../20251117-pypsa-earth-project/scripts/arc/jobs/ ./jobs/
    ```
 
@@ -55,7 +56,8 @@ Clone PyPSA-Earth and stage this helper repo next to it:
 ```zsh
 git clone https://github.com/pypsa-meets-earth/pypsa-earth.git
 scp -r carlo@your-laptop:~/programming/pypsa_models/20251117-pypsa-earth-project ./20251117-pypsa-earth-project
-rsync -av 20251117-pypsa-earth-project/{config,scripts} pypsa-earth/
+rsync -av 20251117-pypsa-earth-project/config/ pypsa-earth/config/
+rsync -av 20251117-pypsa-earth-project/scripts/extra/ pypsa-earth/scripts/extra/
 rsync -av 20251117-pypsa-earth-project/scripts/arc/jobs/ pypsa-earth/jobs/
 ```
 
@@ -184,6 +186,8 @@ ARC_STAGE_DATA=1 ARC_SNAKE_DRYRUN=1 \
 sbatch scripts/arc/jobs/arc_snakemake.sh baseline                                      # full solve once data exist
 sbatch scripts/arc/jobs/arc_snakemake.sh green-ammonia                                 # stress-test scenario
 ```
+
+> Need Gurobi? Use `scripts/arc/jobs/arc_snakemake_gurobi.sh` instead. It loads the `Gurobi/11.0.3` module (override via `ARC_GUROBI_MODULE`), exports `PYPSA_SOLVER_NAME=gurobi`, and writes stats/logs with a `-gurobi` suffix. Stack your usual config files after the run label: `sbatch scripts/arc/jobs/arc_snakemake_gurobi.sh 20251202-green config/...`
 
 The script accepts a single argument (`baseline` or `green-ammonia`) and selects the right Snakemake command plus config stack.
 
