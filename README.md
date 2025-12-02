@@ -187,7 +187,7 @@ sbatch scripts/arc/jobs/arc_snakemake.sh baseline                               
 sbatch scripts/arc/jobs/arc_snakemake.sh green-ammonia                                 # stress-test scenario
 ```
 
-> Need Gurobi? Use `scripts/arc/jobs/arc_snakemake_gurobi.sh` instead. It loads the `Gurobi/11.0.3` module (override via `ARC_GUROBI_MODULE`), exports `PYPSA_SOLVER_NAME=gurobi`, and writes stats/logs with a `-gurobi` suffix. Stack your usual config files after the run label: `sbatch scripts/arc/jobs/arc_snakemake_gurobi.sh 20251202-green config/...`
+> Need Gurobi? Use `scripts/arc/jobs/arc_snakemake_gurobi.sh` instead. It loads the `Gurobi/10.0.3-GCCcore-12.2.0` module by default (override via `ARC_GUROBI_MODULE`), exports `PYPSA_SOLVER_NAME=gurobi`, and writes stats/logs with a `-gurobi` suffix. Stack your usual config files after the run label: `sbatch scripts/arc/jobs/arc_snakemake_gurobi.sh 20251202-green config/...`
 
 The script accepts a single argument (`baseline` or `green-ammonia`) and selects the right Snakemake command plus config stack.
 

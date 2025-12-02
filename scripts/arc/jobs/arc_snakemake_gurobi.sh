@@ -31,7 +31,7 @@ module restore 2>/dev/null || true
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2023.09"}
 module load "$ANACONDA_MODULE"
 
-GUROBI_MODULE=${ARC_GUROBI_MODULE:-"Gurobi/11.0.3"}
+GUROBI_MODULE=${ARC_GUROBI_MODULE:-"Gurobi/10.0.3-GCCcore-12.2.0"}
 module load "$GUROBI_MODULE"
 
 TOOLS_ENV=${ARC_CONDA_TOOLS:-"/data/engs-df-green-ammonia/engs2523/envs/conda-tools"}
