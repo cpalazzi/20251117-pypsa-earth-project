@@ -68,7 +68,7 @@ scenario:
   simpl: [""]
   ll: ["copt"]
   clusters: [60]
-  opts: []  # skip Co2L-3h aggregation to avoid extra preprocessing overhead for the day test
+  opts: ["Co2L-3h"]  # retain the standard PyPSA-Earth preset (CO2 cap + 3 h aggregation)
 
 clustering:
   focus_weights:
