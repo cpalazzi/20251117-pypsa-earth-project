@@ -67,7 +67,7 @@ enable:
 scenario:
   simpl: [""]
   ll: ["copt"]
-  clusters: [60]
+  clusters: [140]  # match baseline resolution (>= 108 minimum for this country set)
   opts: ["Co2L-3h"]  # retain the standard PyPSA-Earth preset (CO2 cap + 3 h aggregation)
 
 clustering:
