@@ -28,10 +28,11 @@ except ImportError as exc:  # pragma: no cover - only executed inside snakemake
     raise RuntimeError("PyPSA must be installed in the runtime environment") from exc
 
 
-def _get_cfg(config: Dict[str, Any]) -> Dict[str, Any]:
+def _get_cfg(config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """Pull the nested green ammonia dictionary or return an empty dict."""
 
-    return config.get("custom", {}).get("green_ammonia", {})
+    cfg = config or {}
+    return cfg.get("custom", {}).get("green_ammonia", {})
 
 
 def _ensure_carrier(network: "pypsa.Network", name: str) -> None:
@@ -235,12 +236,12 @@ def _add_ccgt(
 def add_green_ammonia(
     network: "pypsa.Network",
     snapshots,
-    config: Dict[str, Any],
+    config: Optional[Dict[str, Any]] = None,
     **_,
 ) -> None:
     """Entry point expected by Snakemake's ``extra_functionality`` hook."""
 
-    ga_cfg = _get_cfg(config)
+    ga_cfg = _get_cfg(config or getattr(network, "config", {}))
     if not ga_cfg.get("enable", False):
         return
 

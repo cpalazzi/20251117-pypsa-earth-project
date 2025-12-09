@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, Optional
 
 try:  # pragma: no cover - executed within PyPSA-Earth runtime
     import pypsa  # type: ignore
@@ -49,12 +49,13 @@ def _drop_components(network: "pypsa.Network", component: str, keep_index: Itera
 def limit_core_technologies(
     network: "pypsa.Network",
     snapshots,
-    config: Dict[str, Any],
+    config: Optional[Dict[str, Any]] = None,
     **_,
 ) -> None:
     """Keep only the requested carrier sets for generators and storage."""
 
-    custom_cfg: Dict[str, Any] = config.get("custom", {}).get("core_technologies", {})
+    cfg: Dict[str, Any] = config or getattr(network, "config", {})
+    custom_cfg: Dict[str, Any] = cfg.get("custom", {}).get("core_technologies", {})
     allowed_generators = set(custom_cfg.get("allow_generators", DEFAULT_GENERATORS))
     allowed_storage = set(custom_cfg.get("allow_storage", DEFAULT_STORAGES))
 

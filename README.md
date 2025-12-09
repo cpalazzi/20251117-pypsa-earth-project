@@ -5,17 +5,37 @@ This repository packages a lightweight set of overrides, scripts, and HPC job te
 1. **Baseline sanity check** – default European electricity-only run with a single snapshot.
 2. **Green ammonia stress test** – same setup but with an endogenous green-ammonia supply chain (electrolyser → storage → ammonia-fired CCGT) anchored at a node in southern Spain.
 
-The files in this repo are meant to be layered on top of an official [`pypsa-earth`](https://github.com/pypsa-meets-earth/pypsa-earth) checkout. You will copy them into the PyPSA-Earth working tree (or add this repo as a Git submodule) and refer to the supplied config files & scripts via Snakemake.
+The files in this repo are meant to be layered on top of our patched [`pypsa-earth`](https://github.com/cpalazzi/pypsa-earth) fork (which itself tracks the upstream project). You will copy them into that PyPSA-Earth working tree (or add this repo as a Git submodule) and refer to the supplied config files & scripts via Snakemake.
 
 > **Oxford ARC login**: `engs2523@arc-login.arc.ox.ac.uk`
 
+## PyPSA-Earth fork with built-in fixes
+
+Clone `https://github.com/cpalazzi/pypsa-earth.git` (already ahead of upstream with two commits) so we do not have to keep patch files in this overlay. Those commits do two things:
+
+1. `sitecustomize.py` teaches PyPSA-Earth to handle gzipped Geofabrik MD5 manifests (otherwise `verify_pbf` fails for certain mirrors).
+2. `scripts/solve_network.py` loads every entry listed under `solving.options.extra_functionality` and chains them so the limiter + green-ammonia hooks both run.
+
+Keep the fork synced with upstream so we can raise focused PRs later:
+
+```zsh
+git clone https://github.com/cpalazzi/pypsa-earth.git
+cd pypsa-earth
+git remote add upstream https://github.com/pypsa-meets-earth/pypsa-earth.git
+git fetch upstream
+git merge upstream/main   # or rebase if you prefer
+```
+
+Each time you merge upstream changes, run the PyPSA-Earth test suite locally (at least `pytest test/test_gfk_download.py`) and push back to the fork. When Snakemake runs you should still see `Loaded N extra_functionality hook(s): …` in the logs—if that line is missing, double-check that the fork is on `origin/main` and that the override config lists the hooks you expect.
+
 ## Quick start overview
 
-1. Clone PyPSA-Earth on ARC (or clone locally and sync). **Always work under your `$DATA` quota** (home is tiny and not meant for multi-GB cutouts):
+1. Clone the patched fork on ARC (or clone locally and sync). **Always work under your `$DATA` quota** (home is tiny and not meant for multi-GB cutouts):
 
    ```zsh
-   git clone https://github.com/pypsa-meets-earth/pypsa-earth.git
+   git clone https://github.com/cpalazzi/pypsa-earth.git
    cd pypsa-earth
+   git remote add upstream https://github.com/pypsa-meets-earth/pypsa-earth.git
    ```
 
 2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the overlay files. Keep the run configs under `config/`, drop helper scripts under `scripts/extra/`, and place the Slurm launcher under PyPSA-Earth’s `jobs/` tree so Snakemake finds it where it expects job scripts:
@@ -51,10 +71,12 @@ cd $DATA/engs-df-green-ammonia/engs2523  # or another project dir with ≥200 GB
 module load Anaconda3/<latest> # e.g. Anaconda3/2023.09
 ```
 
-Clone PyPSA-Earth and stage this helper repo next to it:
+Clone the fork and stage this helper repo next to it:
 
 ```zsh
-git clone https://github.com/pypsa-meets-earth/pypsa-earth.git
+git clone https://github.com/cpalazzi/pypsa-earth.git
+cd pypsa-earth
+git remote add upstream https://github.com/pypsa-meets-earth/pypsa-earth.git
 scp -r carlo@your-laptop:~/programming/pypsa_models/20251117-pypsa-earth-project ./20251117-pypsa-earth-project
 rsync -av 20251117-pypsa-earth-project/config/ pypsa-earth/config/
 rsync -av 20251117-pypsa-earth-project/scripts/extra/ pypsa-earth/scripts/extra/
@@ -217,6 +239,7 @@ Add a small plotting notebook (e.g. `notebooks/compare_runs.ipynb`) if you want 
 | `config/default-single-timestep.yaml` | Baseline overrides for a Europe-wide, single-snapshot PyPSA-Earth run. |
 | `config/overrides/green-ammonia.yaml` | Layered config that injects the ammonia assets and switches the output directories. |
 | `scripts/extra/green_ammonia.py` | Extra-functionality hook loaded by Snakemake to add the electrolyser, store, and ammonia CCGT components. |
+| `scripts/extra/limit_core_technologies.py` | Keeps generation/storage carriers to a curated subset for the baseline sanity-check runs. |
 | `scripts/arc/jobs/arc_snakemake.sh` | Slurm helper for ARC – wraps module loads, environment activation, and the relevant Snakemake commands. |
 
 Feel free to extend this repo with additional overrides (longer time slices, different nodes, capacity-value sweeps, etc.).
