@@ -77,6 +77,7 @@ solving:
     extra_functionality:
       - scripts/extra/green_ammonia.py::add_green_ammonia
   solver:
+    # Force HiGHS to dodge ARC's limited Gurobi license.
     name: highs
     options: highs-default
   mem: 48000

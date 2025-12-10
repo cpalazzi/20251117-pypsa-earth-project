@@ -111,6 +111,7 @@ solving:
     extra_functionality:
       - scripts/extra/limit_core_technologies.py::limit_core_technologies
   solver:
+    # Force HiGHS to dodge ARC's limited Gurobi license.
     name: highs
     options: highs-default
   mem: 16000
