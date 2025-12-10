@@ -42,8 +42,8 @@ Each time you merge upstream changes, run the PyPSA-Earth test suite locally (at
 2. Copy this repository next to (or inside) the checkout (again under `$DATA`) and sync the overlay files. Keep the run configs under `config/`, drop helper scripts under `scripts/extra/`, and place the Slurm launcher under PyPSA-Earth’s `jobs/` tree so Snakemake finds it where it expects job scripts:
 
    ```zsh
-   rsync -av ../20251117-pypsa-earth-project/config/ ./config/
-   rsync -av ../20251117-pypsa-earth-project/scripts/extra/ ./scripts/extra/
+   rsync -av ../20251117-pypsa-earth-project/config/ ./config/ &&
+   rsync -av ../20251117-pypsa-earth-project/scripts/extra/ ./scripts/extra/ &&
    rsync -av ../20251117-pypsa-earth-project/scripts/arc/jobs/ ./jobs/
    ```
 

@@ -48,6 +48,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WORKDIR=${ARC_WORKDIR:-${SLURM_SUBMIT_DIR:-$DEFAULT_WORKDIR}}
 cd "$WORKDIR"
+export PYTHONPATH="$WORKDIR:${PYTHONPATH:-}"
 mkdir -p logs
 
 # Central logfile for this run
