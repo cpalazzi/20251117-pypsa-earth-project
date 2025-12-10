@@ -1,0 +1,33 @@
+# Layer this on top of config/default-single-timestep.yaml to keep only a
+# curated set of generation and storage carriers. Intended as the default
+# "extra functionality" test that exercises scripts/extra/limit_core_technologies.py.
+
+run:
+  name: europe-day-core-tech
+  shared_cutouts: true
+
+solving:
+  options:
+    extra_functionality:
+      - scripts/extra/limit_core_technologies.py::limit_core_technologies
+
+custom:
+  core_technologies:
+    allow_generators:
+      - "CCGT"
+      - "nuclear"
+      - "onwind"
+      - "offwind-ac"
+      - "offwind-dc"
+      - "solar"
+    allow_storage:
+      - "PHS"
+      - "battery"
+      - "gas"
+
+global_constraints:
+  - name: CO2LimitZero
+    sense: "<="
+    type: "primary_energy"
+    carrier_attribute: "co2_emissions"
+    constant: 0.0

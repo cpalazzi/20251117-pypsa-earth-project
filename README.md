@@ -1,9 +1,10 @@
 # PyPSA-Earth ARC Runner
 
-This repository packages a lightweight set of overrides, scripts, and HPC job templates to run two PyPSA-Earth experiments on the Oxford Advanced Research Computing (ARC) cluster:
+This repository packages a lightweight set of overrides, scripts, and HPC job templates to run three PyPSA-Earth experiments on the Oxford Advanced Research Computing (ARC) cluster:
 
 1. **Baseline sanity check** – default European electricity-only run with a single snapshot.
-2. **Green ammonia stress test** – same setup but with an endogenous green-ammonia supply chain (electrolyser → storage → ammonia-fired CCGT) anchored at a node in southern Spain.
+2. **Core technology limiter** – layers the `limit_core_technologies` hook on top of the baseline (without changing the snapshot window) to ensure the custom extra-functionality entry points load correctly. This is now our primary “extra hook” test.
+3. **Green ammonia stress test** – same setup but with an endogenous green-ammonia supply chain (electrolyser → storage → ammonia-fired CCGT) anchored at a node in southern Spain.
 
 The files in this repo are meant to be layered on top of our patched [`pypsa-earth`](https://github.com/cpalazzi/pypsa-earth) fork (which itself tracks the upstream project). You will copy them into that PyPSA-Earth working tree (or add this repo as a Git submodule) and refer to the supplied config files & scripts via Snakemake.
 
@@ -49,7 +50,8 @@ Each time you merge upstream changes, run the PyPSA-Earth test suite locally (at
 3. Create/activate the PyPSA-Earth environment (use the provided micromamba-based Slurm script so you do not have to babysit a long interactive job).
 4. Dry-run Snakemake with the baseline config to confirm the DAG is tiny.
 5. Submit the baseline job via the supplied ARC Slurm script.
-6. Repeat with the green-ammonia override.
+6. Re-run Snakemake with the **core-technology override** to exercise `scripts/extra/limit_core_technologies.py` (it inherits the timeline from the baseline config).
+7. Layer on the green-ammonia override once the limiter test succeeds.
 
 The sections below dive into each step, list the exact commands, and explain how to interpret the results.
 
@@ -173,7 +175,22 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 
 4. The solved network will appear at `results/europe/networks/elec_s_37_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
 
-### 4. Green ammonia scenario
+### 4. Core technology limiter scenario
+
+1. Layer `config/overrides/core-technologies.yaml` on top of `config/default-single-timestep.yaml`. The override reuses whatever snapshot window the baseline config defines, renames the run to `europe-day-core-tech`, adds the `limit_core_technologies` hook, and passes the curated carrier lists via `custom.core_technologies`.
+2. Run Snakemake the same way as the baseline but append the override on the command line:
+
+    ```zsh
+    snakemake -call solve_all_networks \
+       --configfile config/default-single-timestep.yaml \
+       --configfile config/overrides/core-technologies.yaml \
+       -j 8 --resources mem_mb=24000 --keep-going --rerun-incomplete --printshellcmds
+    ```
+
+    Expect to see `Loaded 1 extra_functionality hook(s): scripts.extra.limit_core_technologies.limit_core_technologies` in the log.
+3. The solved network lands in `results/europe-day-core-tech/networks/elec_s_140_ec_lcopt_Co2L-3h.nc`, which matches the file path referenced in `notebooks/001_run_analysis_europe.ipynb`. Inspect the `logs/europe-day-core-tech/solve_network/*` files if anything goes wrong.
+
+### 5. Green ammonia scenario
 
 1. The override file `config/overrides/green-ammonia.yaml` switches on a custom extra-functionality hook (`scripts/extra/green_ammonia.py`). The script injects a full hydrogen-to-ammonia chain at the closest Spanish transmission node to Seville (lon = −5.98, lat = 37.41):
    - An **electrolyser link** drawing electricity from the local AC bus into a hydrogen bus.
@@ -198,20 +215,23 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
    - `network.stores.e_nom_opt` for the ammonia store.
    - Marginal prices at the Spanish bus to see if ammonia arbitrage affects congestion costs.
 
-### 5. Submitting through ARC Slurm
+### 6. Submitting through ARC Slurm
 
 The helper script `scripts/arc/jobs/arc_snakemake.sh` wraps the Snakemake commands in a Slurm batch job. It now activates the micromamba-managed environment (via the `conda-tools` helper), can optionally pre-stage the large data downloads, and understands a dry-run mode. Submit as follows (override the partition/time on the command line when you expect long data transfers):
 
 ```zsh
 ARC_STAGE_DATA=1 ARC_SNAKE_DRYRUN=1 \
-   sbatch --partition=long --time=24:00:00 scripts/arc/jobs/arc_snakemake.sh baseline   # first run: download + dry-run
-sbatch scripts/arc/jobs/arc_snakemake.sh baseline                                      # full solve once data exist
-sbatch scripts/arc/jobs/arc_snakemake.sh green-ammonia                                 # stress-test scenario
+  sbatch --partition=long --time=24:00:00 scripts/arc/jobs/arc_snakemake.sh 20251205-baseline \
+   config/default-single-timestep.yaml
+sbatch scripts/arc/jobs/arc_snakemake.sh 20251205-core-tech \
+   config/default-single-timestep.yaml config/overrides/core-technologies.yaml
+sbatch scripts/arc/jobs/arc_snakemake.sh 20251205-green \
+   config/default-single-timestep.yaml config/overrides/green-ammonia.yaml
 ```
 
 > Need Gurobi? Use `scripts/arc/jobs/arc_snakemake_gurobi.sh` instead. It loads the `Gurobi/10.0.3-GCCcore-12.2.0` module by default (override via `ARC_GUROBI_MODULE`), exports `PYPSA_SOLVER_NAME=gurobi`, and writes stats/logs with a `-gurobi` suffix. Stack your usual config files after the run label: `sbatch scripts/arc/jobs/arc_snakemake_gurobi.sh 20251202-green config/...`
 
-The script accepts a single argument (`baseline` or `green-ammonia`) and selects the right Snakemake command plus config stack.
+The first positional argument is just a run label for log filenames (pick anything meaningful, e.g. `yyyymmdd-scenario`). All following arguments are forwarded to Snakemake via repeated `--configfile` flags, so stack the baseline config first and any overrides after it.
 
 Environment/module tips for ARC submissions:
 
@@ -222,7 +242,7 @@ Environment/module tips for ARC submissions:
 - Set `ARC_SNAKE_DRYRUN=1` to have the final Snakemake call pass `-n` so you can inspect the DAG without running any rules.
 - If you need extra solver modules (e.g. `module load Gurobi/11.0.3`), add them near the top of `scripts/arc/jobs/arc_snakemake.sh` just after the Anaconda load.
 
-### 6. Validating outputs
+### 7. Validating outputs
 
 Because the runs only use one snapshot, the quickest sanity checks are:
 
@@ -237,6 +257,7 @@ Add a small plotting notebook (e.g. `notebooks/compare_runs.ipynb`) if you want 
 | File / Folder | Purpose |
 | --- | --- |
 | `config/default-single-timestep.yaml` | Baseline overrides for a Europe-wide, single-snapshot PyPSA-Earth run. |
+| `config/overrides/core-technologies.yaml` | Layers the core-technology limiter hook on top of the baseline run (`run.name = europe-day-core-tech`). |
 | `config/overrides/green-ammonia.yaml` | Layered config that injects the ammonia assets and switches the output directories. |
 | `scripts/extra/green_ammonia.py` | Extra-functionality hook loaded by Snakemake to add the electrolyser, store, and ammonia CCGT components. |
 | `scripts/extra/limit_core_technologies.py` | Keeps generation/storage carriers to a curated subset for the baseline sanity-check runs. |
