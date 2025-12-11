@@ -19,6 +19,9 @@ if [[ -z "${BASH_VERSION:-}" ]]; then
   exit 2
 fi
 if ! command -v module >/dev/null 2>&1; then
+  # Some ARC profile scripts reference MODULEPATH and other vars that may be
+  # unset; temporarily disable nounset so sourcing them does not explode.
+  set +u
   if [[ -f /etc/profile.d/modules.sh ]]; then
     # shellcheck disable=SC1091
     source /etc/profile.d/modules.sh
@@ -26,6 +29,7 @@ if ! command -v module >/dev/null 2>&1; then
     # shellcheck disable=SC1091
     source /usr/share/Modules/init/bash
   fi
+  set -u
 fi
 
 if [[ $# -lt 2 ]]; then
