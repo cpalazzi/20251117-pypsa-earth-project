@@ -63,6 +63,14 @@ if [[ "${ARC_SNAKE_DRYRUN:-0}" == "1" ]]; then
   EXTRA_ARGS+=("-n")
 fi
 
+# Snakemake does not automatically forward custom env vars like PYTHONPATH into
+# conda/job environments, so make sure we explicitly propagate the list.
+ENV_VARS=("PYTHONPATH")
+if [[ -n "${ARC_SNAKE_ENVVARS:-}" ]]; then
+  # ARC_SNAKE_ENVVARS may contain a space-separated list, e.g. "PYTHONPATH FOO".
+  read -r -a ENV_VARS <<<"${ARC_SNAKE_ENVVARS}"
+fi
+
 if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
   mapfile -t AVAILABLE_RULES < <(snakemake --list)
   stage_targets=()
@@ -91,6 +99,7 @@ run_snakemake() {
     "${EXTRA_ARGS[@]}" \
     -j "${CPUS}" \
     --resources mem_mb="${MEM_MB}" \
+    --envvars "${ENV_VARS[@]}" \
     --latency-wait "${LATENCY_WAIT}" \
     --keep-going --rerun-incomplete --printshellcmds \
     --stats "logs/snakemake-${SCENARIO}.stats.json" 2>&1 | tee -a "$LOGFILE"
