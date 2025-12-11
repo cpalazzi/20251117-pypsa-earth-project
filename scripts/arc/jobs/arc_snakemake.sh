@@ -12,6 +12,22 @@
 
 set -euo pipefail
 
+# Batch jobs on ARC do not automatically preload the environment-modules
+# function, so source it manually if available before calling `module`.
+if [[ -z "${BASH_VERSION:-}" ]]; then
+  echo "This script requires bash" >&2
+  exit 2
+fi
+if ! command -v module >/dev/null 2>&1; then
+  if [[ -f /etc/profile.d/modules.sh ]]; then
+    # shellcheck disable=SC1091
+    source /etc/profile.d/modules.sh
+  elif [[ -f /usr/share/Modules/init/bash ]]; then
+    # shellcheck disable=SC1091
+    source /usr/share/Modules/init/bash
+  fi
+fi
+
 if [[ $# -lt 2 ]]; then
   echo "Usage: sbatch scripts/arc/jobs/arc_snakemake.sh <run-label> <configfile> [configfile ...]" >&2
   echo "Example: sbatch scripts/arc/jobs/arc_snakemake.sh 20251126-baseline config/default-single-timestep.yaml" >&2
