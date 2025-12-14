@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=pypsa-earth
-#SBATCH --partition=short,medium
+#SBATCH --partition=long
 #SBATCH --clusters=all
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=256G
-#SBATCH --time=08:00:00
+#SBATCH --mem=384G
+#SBATCH --time=24:00:00
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user=carlo.palazzi@eng.ox.ac.uk
 
