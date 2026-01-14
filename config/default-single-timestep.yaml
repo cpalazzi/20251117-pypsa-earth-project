@@ -115,9 +115,12 @@ solving:
     skip_iterations: true
     track_iterations: false
   solver:
-    # Force HiGHS to dodge ARC's limited Gurobi license.
-    name: highs
-    options: highs-default
+    # Use Gurobi on ARC for faster solve times.
+    name: gurobi
+    options: gurobi-default
+    # HiGHS fallback (leave commented unless needed):
+    # name: highs
+    # options: highs-default
   mem: 24000
 
 logging:

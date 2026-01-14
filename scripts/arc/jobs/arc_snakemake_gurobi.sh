@@ -28,18 +28,18 @@ for cfg in "${CONFIG_FILES[@]}"; do
 done
 
 module restore 2>/dev/null || true
-ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2023.09"}
+ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2024.06-1"}
 module load "$ANACONDA_MODULE"
 
 GUROBI_MODULE=${ARC_GUROBI_MODULE:-"Gurobi/10.0.3-GCCcore-12.2.0"}
 module load "$GUROBI_MODULE"
 
-TOOLS_ENV=${ARC_CONDA_TOOLS:-"/data/engs-df-green-ammonia/engs2523/envs/conda-tools"}
-PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env"}
+PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10"}
 
-source activate "$TOOLS_ENV"
-eval "$(micromamba shell hook --shell bash)"
-micromamba activate "$PYPSA_ENV"
+if [ -n "${EBROOTANACONDA3:-}" ] && [ -f "$EBROOTANACONDA3/etc/profile.d/conda.sh" ]; then
+  source "$EBROOTANACONDA3/etc/profile.d/conda.sh"
+fi
+conda activate "$PYPSA_ENV"
 
 export PYPSA_SOLVER_NAME=${PYPSA_SOLVER_NAME:-gurobi}
 export LINOPY_SOLVER=${LINOPY_SOLVER:-gurobi}

@@ -47,7 +47,7 @@ Each time you merge upstream changes, run the PyPSA-Earth test suite locally (at
    rsync -av ../20251117-pypsa-earth-project/scripts/arc/jobs/ ./jobs/
    ```
 
-3. Create/activate the PyPSA-Earth environment (use the provided micromamba-based Slurm script so you do not have to babysit a long interactive job).
+3. Create/activate the PyPSA-Earth environment (use the provided conda-based Slurm script so you do not have to babysit a long interactive job).
 4. Dry-run Snakemake with the baseline config to confirm the DAG is tiny.
 5. Submit the baseline job via the supplied ARC Slurm script.
 6. Re-run Snakemake with the **core-technology override** to exercise `scripts/extra/limit_core_technologies.py` (it inherits the timeline from the baseline config).
@@ -58,7 +58,7 @@ The sections below dive into each step, list the exact commands, and explain how
 ## Environments and data prerequisites
 
 - **Python environment**: PyPSA-Earth currently ships `envs/environment.yaml`. ARC already exposes several Anaconda versions; run `module spider Anaconda3` to see the newest release, then `module load <latest>` before creating the env. If you want the sbatch job to load a specific version automatically, set `ARC_ANACONDA_MODULE=Anaconda3/<version>` before calling `sbatch`.
-- **Solver**: HiGHS ships with the environment (`pypsa-earth` defaults to Gurobi, but the override file keeps HiGHS to avoid license hurdles). If you have a Gurobi token on ARC, edit the config accordingly.
+- **Solver**: Gurobi is available as a module on ARC. The baseline config now uses Gurobi by default; HiGHS remains as a commented fallback.
 - **Data**: The baseline config keeps `enable.retrieve_databundle` true so the required (10°×10°) cutouts download automatically. If you already have a populated `resources/` folder on ARC, you may set those flags to false for faster reruns.
 - **Storage**: ARC home directories (~15 GB) fill up instantly. Always work in `$DATA/<project>/<user>` (for OXGATE this is `/data/engs-df-green-ammonia/<ox-id>`). Consider creating `$DATA/engs-df-green-ammonia/<ox-id>/pypsa-earth` for the repo and `$DATA/engs-df-green-ammonia/<ox-id>/envs` for conda prefixes.
 
@@ -87,63 +87,43 @@ rsync -av 20251117-pypsa-earth-project/scripts/arc/jobs/ pypsa-earth/jobs/
 
 > Prefer `rsync` over `cp` so the directory structure is preserved. You can also keep this helper repo as a Git submodule inside `pypsa-earth` if you want to version-lock future tweaks.
 
-### 2. Create and activate the environment
+### 2. Create and activate the environment (conda-only on ARC)
 
-The repo ships `scripts/arc/build-pypsa-earth.sh`, a Slurm job that:
+The repo ships `scripts/arc/build-pypsa-earth-gurobi10-conda.sh`, a Slurm job that:
 
-- downloads a fresh micromamba binary inside the compute node’s `$TMPDIR`,
-- installs `conda-lock` + `mamba` into a tiny helper env,
-- recreates the PyPSA-Earth env under `/data/…/envs/pypsa-earth-env` **from the official `envs/linux-64.lock.yaml`**, and
+- uses the ARC Anaconda module,
+- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi10` from `envs/environment-arc-gurobi10.yaml`, and
 - logs the resulting package set for future diffing.
 
 Submit it any time you need a clean environment:
 
 ```bash
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
-sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth.sh
+sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth-gurobi10-conda.sh
 squeue -u engs2523                   # watch progress
-tail -f /data/engs-df-green-ammonia/engs2523/envs/logs/pypsa-earth-env.<jobid>.out
+tail -f /data/engs-df-green-ammonia/engs2523/pypsa-earth/slurm-<jobid>.out
 ```
 
-If you have not yet installed micromamba in your ARC account, do it once (takes <1 min):
-
-```bash
-mkdir -p $HOME/bin
-curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C $HOME/bin --strip-components=1 bin/micromamba
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-> Alternative: if you prefer not to touch `~/.bashrc`, create a tiny helper environment that only hosts micromamba:
->
-> ```bash
-> module load Anaconda3/2023.09
-> conda create -y -p /data/engs-df-green-ammonia/$USER/envs/conda-tools micromamba
-> ```
->
-> Then, in each ARC shell run `source activate /data/engs-df-green-ammonia/$USER/envs/conda-tools` before calling any `micromamba` commands.
-
-Once the build job mails you (or the log stops growing) jump into a short interactive session to verify. The key is to **let micromamba manage activation**—do **not** use `conda activate` on the PyPSA-Earth environment or PuLP may jump back to 3.x.
+Once the build job mails you (or the log stops growing) jump into a short interactive session to verify:
 
 ```bash
 srun --pty --partition=interactive --time=00:30:00 --cpus-per-task=2 --mem=4G /bin/bash
-module load Anaconda3/2023.09
-source activate /data/engs-df-green-ammonia/engs2523/envs/conda-tools   # provides the micromamba CLI
-eval "$(micromamba shell hook --shell bash)"                           # teach the current shell about micromamba
-micromamba activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env
-python -c "import pulp, snakemake; print('PuLP', pulp.__version__); print('Snakemake', snakemake.__version__)"
+module load Anaconda3/2024.06-1
+module load Gurobi/10.0.3-GCCcore-12.2.0
+source $EBROOTANACONDA3/etc/profile.d/conda.sh
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10
+python -c "import sys; print(sys.version)"
+python -c "import gurobipy; print(gurobipy.gurobi.version())"
 snakemake --version
 ```
 
-> If you skipped the `conda-tools` helper env, call micromamba explicitly (e.g. `$HOME/bin/micromamba activate …`) and still run the shell hook: `eval "$($HOME/bin/micromamba shell hook --shell bash)"`.
-
-After the checks, deactivate (`micromamba deactivate`) and exit the interactive shell. Each future Snakemake run only needs:
+Each future Snakemake run only needs:
 
 ```bash
-module load Anaconda3/2023.09
-source activate /data/engs-df-green-ammonia/engs2523/envs/conda-tools
-eval "$(micromamba shell hook --shell bash)"
-micromamba activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env
+module load Anaconda3/2024.06-1
+module load Gurobi/10.0.3-GCCcore-12.2.0
+source $EBROOTANACONDA3/etc/profile.d/conda.sh
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 ```
 
@@ -153,7 +133,7 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
    - geographic scope to continental Europe,
    - clustering to 37 buses,
    - a single snapshot (`2013-01-01 00:00Z`),
-   - HiGHS as the solver with low memory needs,
+   - Gurobi as the solver (HiGHS remains as a commented fallback),
    - a unique run name: `run.name = europe`.
 
 > First-time runs need to download cutouts, osm extracts, and databundles (tens of GB). To get that out of the way, run `snakemake --cores 8 retrieve_databundle_light download_osm_data build_cutout` (or submit the batch script with `ARC_STAGE_DATA=1`) before attempting the full solve.
@@ -173,7 +153,14 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
      -j 16 --resources mem_mb=32000 --keep-going --rerun-incomplete
    ```
 
-4. The solved network will appear at `results/europe/networks/elec_s_37_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
+4. To run on ARC with Gurobi, submit the job script (it loads the Gurobi module and activates the conda env):
+
+    ```zsh
+    sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/jobs/arc_snakemake_gurobi.sh \
+       europe config/default-single-timestep.yaml
+    ```
+
+5. The solved network will appear at `results/europe/networks/elec_s_37_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
 
 ### 4. Core technology limiter scenario
 
