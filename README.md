@@ -92,7 +92,7 @@ rsync -av 20251117-pypsa-earth-project/scripts/arc/jobs/ pypsa-earth/jobs/
 The repo ships `scripts/arc/build-pypsa-earth-gurobi-conda.sh`, a Slurm job that:
 
 - uses the ARC Anaconda module,
-- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi` from PyPSA-Earth’s `envs/environment.yaml` (including the `gurobi` channel), and
+- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi` pinned to Python 3.10 (required by gurobipy), from PyPSA-Earth’s `envs/environment.yaml` (including the `gurobi` channel), and
 - logs the resulting package set for future diffing.
 
 Submit it any time you need a clean environment:
@@ -110,7 +110,7 @@ Once the build job mails you (or the log stops growing) jump into a short intera
 srun --pty --partition=interactive --time=00:30:00 --cpus-per-task=2 --mem=4G /bin/bash
 module load Anaconda3/2024.06-1
 ## Optional: only load a Gurobi module if you are not using the conda-provided Gurobi.
-## For WLS licensing with conda-installed Gurobi, leave this unset.
+## For WLS licensing with conda-installed Gurobi, leave this unset to avoid ABI mismatches.
 export ARC_GUROBI_MODULE=""
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi

@@ -40,7 +40,6 @@ for cfg in "${CONFIG_FILES[@]}"; do
   CONFIG_ARGS+=("--configfile" "$cfg")
 done
 
-module restore 2>/dev/null || true
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2024.06-1"}
 module load "$ANACONDA_MODULE"
 
