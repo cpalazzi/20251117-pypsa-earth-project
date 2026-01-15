@@ -89,17 +89,17 @@ rsync -av 20251117-pypsa-earth-project/scripts/arc/jobs/ pypsa-earth/jobs/
 
 ### 2. Create and activate the environment (conda-only on ARC)
 
-The repo ships `scripts/arc/build-pypsa-earth-gurobi10-conda.sh`, a Slurm job that:
+The repo ships `scripts/arc/build-pypsa-earth-gurobi-conda.sh`, a Slurm job that:
 
 - uses the ARC Anaconda module,
-- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi10` from `envs/environment-arc-gurobi10.yaml`, and
+- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi` from PyPSA-Earth’s `envs/environment.yaml` (including the `gurobi` channel), and
 - logs the resulting package set for future diffing.
 
 Submit it any time you need a clean environment:
 
 ```bash
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
-sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth-gurobi10-conda.sh
+sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth-gurobi-conda.sh
 squeue -u engs2523                   # watch progress
 tail -f /data/engs-df-green-ammonia/engs2523/pypsa-earth/slurm-<jobid>.out
 ```
@@ -111,7 +111,7 @@ srun --pty --partition=interactive --time=00:30:00 --cpus-per-task=2 --mem=4G /b
 module load Anaconda3/2024.06-1
 module load Gurobi/10.0.3-GCCcore-12.2.0
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
-conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
 python -c "import sys; print(sys.version)"
 python -c "import gurobipy; print(gurobipy.gurobi.version())"
 snakemake --version
@@ -123,7 +123,8 @@ Each future Snakemake run only needs:
 module load Anaconda3/2024.06-1
 module load Gurobi/10.0.3-GCCcore-12.2.0
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
-conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
+export GRB_LICENSE_FILE=/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 ```
 

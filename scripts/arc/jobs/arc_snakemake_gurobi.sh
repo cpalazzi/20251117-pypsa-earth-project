@@ -44,12 +44,13 @@ module load "$ANACONDA_MODULE"
 GUROBI_MODULE=${ARC_GUROBI_MODULE:-"Gurobi/10.0.3-GCCcore-12.2.0"}
 module load "$GUROBI_MODULE"
 
-PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi10"}
+PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi"}
 
 export PATH="$PYPSA_ENV/bin:$PATH"
 
 export PYPSA_SOLVER_NAME=${PYPSA_SOLVER_NAME:-gurobi}
 export LINOPY_SOLVER=${LINOPY_SOLVER:-gurobi}
+export GRB_LICENSE_FILE=${GRB_LICENSE_FILE:-"/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic"}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
