@@ -1,6 +1,6 @@
-# Full-year configuration with 3-hour snapshot aggregation and an explicit zero CO2 budget.
-# Mirrors config/default-single-timestep.yaml but spans all of 2013 before applying the
-# Co2L-3h option preset. Use with `snakemake --configfile config/yearly-threehour-zero-co2.yaml`.
+# Full-year configuration with 3-hour snapshot aggregation and the standard CO2 cap preset.
+# Mirrors config/yearly-threehour-zero-co2.yaml but without the explicit zero CO2 constraint.
+# Use with `snakemake --configfile config/yearly-threehour.yaml`.
 
 version: 0.7.0
 foresight: overnight
@@ -8,7 +8,7 @@ foresight: overnight
 tutorial: false
 
 run:
-  name: europe-yearly-3h-zero
+  name: europe-yearly-3h
   sector_name: ""
   shared_cutouts: true
 
@@ -127,10 +127,3 @@ plotting:
   map:
     boundaries: [-11.0, 30.0, 34.0, 72.0]
     figsize: [7, 7]
-
-global_constraints:
-  - name: CO2LimitZero
-    sense: "<="
-    type: "primary_energy"
-    carrier_attribute: "co2_emissions"
-    constant: 0.0  # enforce zero operational CO2 across the model horizon

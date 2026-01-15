@@ -157,14 +157,30 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
      -j 16 --resources mem_mb=32000 --keep-going --rerun-incomplete
    ```
 
-4. To run on ARC with Gurobi, submit the job script (it loads the Gurobi module and activates the conda env):
+4. To run on ARC with Gurobi, submit the job script (it uses the conda Gurobi install and WLS license):
 
     ```zsh
     sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/jobs/arc_snakemake_gurobi.sh \
        europe config/default-single-timestep.yaml
     ```
 
-5. The solved network will appear at `results/europe/networks/elec_s_37_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
+5. The solved network will appear at `results/europe/networks/elec_s_140_ec_lcopt_Co2L-3h.nc`. Inspect it via PyPSA or `pypsa-eur/scripts/plotting.py` to verify the objective value and generation mix look sensible.
+
+### 3b. Yearly 3-hour runs
+
+1. **Yearly base (standard CO2 cap preset)**
+
+    ```zsh
+    sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/jobs/arc_snakemake_gurobi.sh \
+       europe-yearly-3h config/yearly-threehour.yaml
+    ```
+
+2. **Yearly zero-CO2**
+
+    ```zsh
+    sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/jobs/arc_snakemake_gurobi.sh \
+       europe-yearly-3h-zero config/yearly-threehour-zero-co2.yaml
+    ```
 
 ### 4. Core technology limiter scenario
 
@@ -180,6 +196,14 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 
     Expect to see `Loaded 1 extra_functionality hook(s): scripts.extra.limit_core_technologies.limit_core_technologies` in the log.
 3. The solved network lands in `results/europe-day-core-tech/networks/elec_s_140_ec_lcopt_Co2L-3h.nc`, which matches the file path referenced in `notebooks/001_run_analysis_europe.ipynb`. Inspect the `logs/europe-day-core-tech/solve_network/*` files if anything goes wrong.
+
+### Performance tips
+
+- **Pre-stage data**: run `retrieve_databundle_light`, `download_osm_data`, and `build_cutout` once to avoid repeated downloads.
+- **Reduce clustering**: drop `clusters` from 140 to 37 for faster iterations.
+- **Keep snapshots coarse**: retain `Co2L-3h` for 3-hour aggregation.
+- **Tune solver threads**: set Gurobi `Threads` in solver options if needed.
+- **Avoid module mismatches**: keep `ARC_GUROBI_MODULE` unset when using conda-installed Gurobi.
 
 ### 5. Green ammonia scenario
 
