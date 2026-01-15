@@ -34,8 +34,13 @@ ENV_PREFIX=/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
 LOGDIR=/data/engs-df-green-ammonia/engs2523/envs/logs
 mkdir -p "$LOGDIR" "$(dirname "$ENV_PREFIX")"
 
-rm -rf "$ENV_PREFIX"
+if [ -d "$ENV_PREFIX" ]; then
+  rm -rf "${ENV_PREFIX}.old" || true
+  mv "$ENV_PREFIX" "${ENV_PREFIX}.old" || true
+  rm -rf "${ENV_PREFIX}.old" || true
+fi
 conda create -y -p "$ENV_PREFIX" python=3.10
+echo "python=3.10*" > "$ENV_PREFIX/conda-meta/pinned"
 conda env update -y -p "$ENV_PREFIX" -f "$WORKDIR/envs/environment.yaml"
 conda install -y -p "$ENV_PREFIX" -c gurobi gurobi
 
