@@ -26,6 +26,9 @@ logs/
 .snakemake/
 .metadata/
 
+# License files
+gurobi.lic
+
 # Backups
 *.bak
 *.swp
