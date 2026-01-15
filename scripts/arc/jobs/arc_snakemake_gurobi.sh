@@ -43,11 +43,6 @@ done
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2024.06-1"}
 module load "$ANACONDA_MODULE"
 
-GUROBI_MODULE=${ARC_GUROBI_MODULE:-""}
-if [ -n "$GUROBI_MODULE" ]; then
-  module load "$GUROBI_MODULE"
-fi
-
 PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi"}
 
 export PATH="$PYPSA_ENV/bin:$PATH"
@@ -67,6 +62,10 @@ echo "Snakemake log: $LOGFILE"
 
 MEM_MB=${SLURM_MEM_PER_NODE:-256000}
 CPUS=${SLURM_CPUS_PER_TASK:-16}
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-$CPUS}
+export MKL_NUM_THREADS=${MKL_NUM_THREADS:-$CPUS}
+export OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS:-$CPUS}
+export GRB_THREADS=${GRB_THREADS:-$CPUS}
 LATENCY_WAIT=${ARC_SNAKE_LATENCY_WAIT:-60}
 EXTRA_ARGS=()
 if [[ "${ARC_SNAKE_DRYRUN:-0}" == "1" ]]; then
