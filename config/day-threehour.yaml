@@ -1,6 +1,5 @@
-# Single-day configuration with 3-hour snapshot aggregation and a zero CO2 budget.
-# Derived from config/month-threehour-zero-co2.yaml but restricted to the first
-# 24 hours of 2013 to gauge baseline solver performance.
+# Single-day configuration with 3-hour snapshot aggregation and standard CO2 cap preset.
+# Derived from config/day-threehour-zero-co2.yaml but without the explicit zero CO2 constraint.
 
 version: 0.7.0
 foresight: overnight
@@ -8,7 +7,7 @@ foresight: overnight
 tutorial: false
 
 run:
-  name: europe-day-3h-zero
+  name: europe-day-3h
   sector_name: ""
   shared_cutouts: true
 
@@ -127,10 +126,3 @@ plotting:
   map:
     boundaries: [-11.0, 30.0, 34.0, 72.0]
     figsize: [7, 7]
-
-global_constraints:
-  - name: CO2LimitZero
-    sense: "<="
-    type: "primary_energy"
-    carrier_attribute: "co2_emissions"
-    constant: 0.0  # enforce zero operational CO2 across the model horizon
