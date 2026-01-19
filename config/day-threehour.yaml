@@ -16,43 +16,43 @@ summary_dir: results/
 
 regions: ["europe"]
 countries:
-  - "AL"
   - "AT"
-  - "BA"
-  - "BE"
   - "BG"
-  - "CH"
+  # - "AL"  # removed (pop/area < Denmark)
+  # - "BA"  # removed (pop/area < Denmark)
+  # - "BE"  # removed (area < Denmark)
+  # - "CH"  # removed (area < Denmark)
   # - "CY"
   - "CZ"
   - "DE"
   - "DK"
-  - "EE"
   - "ES"
-  - "FI"
   - "FR"
   - "GB"
   - "GR"
-  - "HR"
   - "HU"
-  - "IE"
   - "IT"
-  - "LT"
-  - "LU"
-  - "LV"
-  - "ME"
-  - "MK"
-  - "NL"
-  - "NO"
   - "PL"
   - "PT"
   - "RO"
   - "RS"
   - "SE"
-  - "SI"
-  - "SK"
+  # - "EE"  # removed (pop/area < Denmark)
+  # - "FI"  # removed (pop < Denmark)
+  # - "HR"  # removed (pop < Denmark)
+  # - "IE"  # removed (pop < Denmark)
+  # - "LT"  # removed (pop < Denmark)
+  # - "LU"  # removed (pop < Denmark)
+  # - "LV"  # removed (pop < Denmark)
+  # - "ME"  # removed (pop < Denmark)
+  # - "MK"  # removed (pop < Denmark)
+  # - "NL"  # removed (area < Denmark)
+  # - "NO"  # removed (pop < Denmark)
+  # - "SI"  # removed (pop < Denmark)
+  # - "SK"  # removed (pop < Denmark)
   # - "TR"
   # - "UA"
-  - "XK"
+  # - "XK"  # removed (pop < Denmark)
 
 snapshots:
   start: "2013-01-01 00:00"

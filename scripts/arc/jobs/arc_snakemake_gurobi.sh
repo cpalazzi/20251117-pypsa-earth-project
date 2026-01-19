@@ -43,13 +43,15 @@ done
 ANACONDA_MODULE=${ARC_ANACONDA_MODULE:-"Anaconda3/2024.06-1"}
 module load "$ANACONDA_MODULE"
 
-PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi"}
+PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env"}
 
 export PATH="$PYPSA_ENV/bin:$PATH"
 
 export PYPSA_SOLVER_NAME=${PYPSA_SOLVER_NAME:-gurobi}
 export LINOPY_SOLVER=${LINOPY_SOLVER:-gurobi}
 export GRB_LICENSE_FILE=${GRB_LICENSE_FILE:-"/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic"}
+export PROJ_LIB=${PROJ_LIB:-"$PYPSA_ENV/share/proj"}
+export PROJ_DATA=${PROJ_DATA:-"$PYPSA_ENV/share/proj"}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -70,6 +72,13 @@ LATENCY_WAIT=${ARC_SNAKE_LATENCY_WAIT:-60}
 EXTRA_ARGS=()
 if [[ "${ARC_SNAKE_DRYRUN:-0}" == "1" ]]; then
   EXTRA_ARGS+=("-n")
+fi
+if [[ "${ARC_SNAKE_NOLOCK:-0}" == "1" ]]; then
+  EXTRA_ARGS+=("--nolock")
+fi
+
+if [[ "${ARC_SNAKE_UNLOCK:-0}" == "1" ]]; then
+  snakemake --unlock
 fi
 
 if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then

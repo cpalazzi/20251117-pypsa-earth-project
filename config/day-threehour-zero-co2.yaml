@@ -72,7 +72,7 @@ enable:
 scenario:
   simpl: [""]
   ll: ["copt"]
-  clusters: [50]
+  clusters: [108]
   opts:
     - "Co2L-3h"  # Co2L applies the PyPSA-Earth CO2 cap preset; -3h coarsens snapshots into 3 h blocks
 

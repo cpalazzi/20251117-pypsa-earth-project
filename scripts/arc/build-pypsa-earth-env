@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=build-pypsa-earth-gurobi
+#SBATCH --job-name=build-pypsa-earth-env
 #SBATCH --chdir=/data/engs-df-green-ammonia/engs2523/pypsa-earth
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
@@ -30,7 +30,7 @@ if [ -n "${EBROOTANACONDA3:-}" ] && [ -f "$EBROOTANACONDA3/etc/profile.d/conda.s
 fi
 
 WORKDIR=/data/engs-df-green-ammonia/engs2523/pypsa-earth
-ENV_PREFIX=/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
+ENV_PREFIX=/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env
 LOGDIR=/data/engs-df-green-ammonia/engs2523/envs/logs
 mkdir -p "$LOGDIR" "$(dirname "$ENV_PREFIX")"
 
@@ -39,12 +39,12 @@ if [ -d "$ENV_PREFIX" ]; then
   mv "$ENV_PREFIX" "${ENV_PREFIX}.old" || true
   rm -rf "${ENV_PREFIX}.old" || true
 fi
-conda create -y -p "$ENV_PREFIX" python=3.10
-echo "python=3.10*" > "$ENV_PREFIX/conda-meta/pinned"
+
+conda create -y -p "$ENV_PREFIX"
 conda env update -p "$ENV_PREFIX" -f "$WORKDIR/envs/environment.yaml"
 conda install -y -p "$ENV_PREFIX" -c gurobi gurobi
 
-conda list -p "$ENV_PREFIX" > "$LOGDIR/pypsa-earth-env-gurobi-packages.txt"
+conda list -p "$ENV_PREFIX" > "$LOGDIR/pypsa-earth-env-packages.txt"
 "$ENV_PREFIX/bin/python" -c "import sys; print(sys.version)"
 
 echo "Environment created at $ENV_PREFIX"

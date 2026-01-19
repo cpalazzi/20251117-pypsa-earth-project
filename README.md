@@ -10,6 +10,11 @@ The files in this repo are meant to be layered on top of our patched [`pypsa-ear
 
 > **Oxford ARC login**: `engs2523@arc-login.arc.ox.ac.uk`
 
+> **Automation note (SSH)**: When running checks via an AI agent, use a single SSH command with a chained script (e.g., `ssh user@host "<commands>"`) rather than an interactive session. Agents cannot type into a live SSH prompt, so use inline commands or batch scripts and inspect the output.
+
+> **Lock cleanup note**: If a run fails early (or a previous job was killed), Snakemake may leave a lock in the PyPSA-Earth working directory. Before resubmitting, clear the lock and any stale job outputs:
+> 1) Ensure no other Snakemake jobs are running (`squeue -u <user>`). 2) Unlock with the full conda path: `/data/.../envs/pypsa-earth-env/bin/snakemake --unlock` from the repo root. 3) Remove stale `slurm-<jobid>.out` files only if you no longer need them.
+
 ## PyPSA-Earth fork with built-in fixes
 
 Clone `https://github.com/cpalazzi/pypsa-earth.git` (already ahead of upstream with two commits) so we do not have to keep patch files in this overlay. Those commits do two things:
@@ -89,17 +94,17 @@ rsync -av 20251117-pypsa-earth-project/scripts/arc/jobs/ pypsa-earth/jobs/
 
 ### 2. Create and activate the environment (conda-only on ARC)
 
-The repo ships `scripts/arc/build-pypsa-earth-gurobi-conda.sh`, a Slurm job that:
+The repo ships `scripts/arc/build-pypsa-earth-env`, a Slurm job that:
 
 - uses the ARC Anaconda module,
-- creates a conda environment at `/data/…/envs/pypsa-earth-env-gurobi` pinned to Python 3.10 (required by gurobipy), from PyPSA-Earth’s `envs/environment.yaml` (including the `gurobi` channel), and
+- creates a conda environment at `/data/…/envs/pypsa-earth-env` from PyPSA-Earth’s `envs/environment.yaml` and installs the Gurobi Python bindings, and
 - logs the resulting package set for future diffing.
 
 Submit it any time you need a clean environment:
 
 ```bash
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
-sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth-gurobi-conda.sh
+sbatch /data/engs-df-green-ammonia/engs2523/20251117-pypsa-earth-project/scripts/arc/build-pypsa-earth-env
 squeue -u engs2523                   # watch progress
 tail -f /data/engs-df-green-ammonia/engs2523/pypsa-earth/slurm-<jobid>.out
 ```
@@ -113,7 +118,7 @@ module load Anaconda3/2024.06-1
 ## For WLS licensing with conda-installed Gurobi, leave this unset to avoid ABI mismatches.
 export ARC_GUROBI_MODULE=""
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
-conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env
 python -c "import sys; print(sys.version)"
 python -c "import gurobipy; print(gurobipy.gurobi.version())"
 snakemake --version
@@ -126,7 +131,7 @@ module load Anaconda3/2024.06-1
 ## Optional: only load a Gurobi module if you are not using the conda-provided Gurobi.
 export ARC_GUROBI_MODULE=""
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
-conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env-gurobi
+conda activate /data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env
 export GRB_LICENSE_FILE=/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 ```
