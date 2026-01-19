@@ -18,7 +18,8 @@ pip-wheel-metadata/
 *.egg-info/
 
 # ARC / Snakemake artifacts
-results/
+results/**
+!results/.gitkeep
 logs/
 **/slurm-*.out
 **/slurm-*.err

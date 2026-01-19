@@ -46,6 +46,7 @@ module load "$ANACONDA_MODULE"
 PYPSA_ENV=${ARC_PYPSA_ENV:-"/data/engs-df-green-ammonia/engs2523/envs/pypsa-earth-env"}
 
 export PATH="$PYPSA_ENV/bin:$PATH"
+SNAKEMAKE="$PYPSA_ENV/bin/snakemake"
 
 export PYPSA_SOLVER_NAME=${PYPSA_SOLVER_NAME:-gurobi}
 export LINOPY_SOLVER=${LINOPY_SOLVER:-gurobi}
@@ -78,11 +79,11 @@ if [[ "${ARC_SNAKE_NOLOCK:-0}" == "1" ]]; then
 fi
 
 if [[ "${ARC_SNAKE_UNLOCK:-0}" == "1" ]]; then
-  snakemake --unlock
+  "$SNAKEMAKE" --unlock
 fi
 
 if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
-  mapfile -t AVAILABLE_RULES < <(snakemake --list)
+  mapfile -t AVAILABLE_RULES < <("$SNAKEMAKE" --list)
   stage_targets=()
   for rule in retrieve_databundle_light download_osm_data build_cutout; do
     if printf '%s\n' "${AVAILABLE_RULES[@]}" | grep -qx "$rule"; then
@@ -91,11 +92,11 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
   done
   if [[ ${#stage_targets[@]} -gt 0 ]]; then
     if [[ " ${stage_targets[*]} " == *" retrieve_databundle_light "* ]]; then
-      printf 'all\n\n' | snakemake --cores "$CPUS" "${stage_targets[@]}" \
+      printf 'all\n\n' | "$SNAKEMAKE" --cores "$CPUS" "${stage_targets[@]}" \
         --resources mem_mb="$MEM_MB" --keep-going --rerun-incomplete \
         --latency-wait "$LATENCY_WAIT"
     else
-      snakemake --cores "$CPUS" "${stage_targets[@]}" \
+      "$SNAKEMAKE" --cores "$CPUS" "${stage_targets[@]}" \
         --resources mem_mb="$MEM_MB" --keep-going --rerun-incomplete \
         --latency-wait "$LATENCY_WAIT"
     fi
@@ -103,7 +104,7 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
 fi
 
 run_snakemake() {
-  snakemake \
+  "$SNAKEMAKE" \
     "$@" \
     "${EXTRA_ARGS[@]}" \
     -j "${CPUS}" \
