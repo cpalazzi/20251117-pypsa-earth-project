@@ -57,10 +57,10 @@ snapshots:
   inclusive: "left"
 
 enable:
-  retrieve_databundle: true
+  retrieve_databundle: false
   retrieve_databundle_sector: false
-  retrieve_cost_data: true
-  download_osm_data: true
+  retrieve_cost_data: false
+  download_osm_data: false
   build_natura_raster: false
   build_cutout: false
 
@@ -72,32 +72,20 @@ scenario:
 
 clustering:
   focus_weights:
-    DE: 0.035
-    FR: 0.035
-    GB: 0.035
-    IT: 0.035
-    ES: 0.035
-    PL: 0.025
-    NO: 0.015
-    SE: 0.02
-    NL: 0.015
+    DE: 0.0517
+    FR: 0.0422
+    GB: 0.0418
+    IT: 0.0366
+    ES: 0.0294
+    PL: 0.0236
+    NL: 0.0111
+    SE: 0.0065
+    DK: 0.0037
+    NO: 0.0034
 
 atlite:
-  nprocesses: 4
-  cutouts:
-    cutout-2013-era5:
-      module: era5
-      dx: 0.3
-      dy: 0.3
-      time: ["2013-01-01", "2013-01-03"]
-  default_cutout: cutout-2013-era5
-
-load_options:
-  ssp: "ssp2-2.6"
-  weather_year: 2013
-  prediction_year: 2030
-  scale: 1
-
+    name: gurobi
+    options: gurobi-default
 solving:
   options:
     formulation: kirchhoff
@@ -111,9 +99,8 @@ solving:
     extra_functionality:
       - scripts/extra/limit_core_technologies.py::limit_core_technologies
   solver:
-    # Force HiGHS to dodge ARC's limited Gurobi license.
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
   mem: 16000
 
 logging:

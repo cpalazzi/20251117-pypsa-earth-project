@@ -78,15 +78,16 @@ scenario:
 
 clustering:
   focus_weights:
-    DE: 0.035
-    FR: 0.035
-    GB: 0.035
-    IT: 0.035
-    ES: 0.035
-    PL: 0.025
-    NO: 0.015
-    SE: 0.02
-    NL: 0.015
+    DE: 0.0517
+    FR: 0.0422
+    GB: 0.0418
+    IT: 0.0366
+    ES: 0.0294
+    PL: 0.0236
+    NL: 0.0111
+    SE: 0.0065
+    DK: 0.0037
+    NO: 0.0034
 
 atlite:
   nprocesses: 4
@@ -118,9 +119,6 @@ solving:
     # Use Gurobi on ARC for faster solve times.
     name: gurobi
     options: gurobi-default
-    # HiGHS fallback (leave commented unless needed):
-    # name: highs
-    # options: highs-default
   mem: 24000
 
 logging:

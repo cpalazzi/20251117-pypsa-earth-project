@@ -59,6 +59,7 @@ DEFAULT_WORKDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WORKDIR=${ARC_WORKDIR:-${SLURM_SUBMIT_DIR:-$DEFAULT_WORKDIR}}
 cd "$WORKDIR"
 mkdir -p logs
+export PYTHONPATH="$WORKDIR${PYTHONPATH:+:$PYTHONPATH}"
 
 LOGFILE="logs/snakemake-${SCENARIO}-$(date +%Y%m%d-%H%M%S)-gurobi.log"
 echo "Snakemake log: $LOGFILE"
