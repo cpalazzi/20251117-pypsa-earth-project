@@ -2,7 +2,7 @@
 # Mirrors config/default-single-timestep.yaml but spans all of 2013 before applying the
 # Co2L-3h option preset. Use with `snakemake --configfile config/yearly-threehour-zero-co2.yaml`.
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false

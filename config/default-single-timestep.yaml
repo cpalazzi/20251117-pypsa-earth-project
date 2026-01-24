@@ -2,7 +2,7 @@
 # Copy this file into the root of your pypsa-earth checkout (next to config.yaml) and
 # pass it to snakemake with `--configfile config/default-single-timestep.yaml`.
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false

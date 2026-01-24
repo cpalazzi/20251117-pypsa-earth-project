@@ -2,7 +2,7 @@
 # and the custom green-ammonia chain described in scripts/extra/green_ammonia.py.
 # Use via `snakemake --configfile config/yearly-threehour-zero-co2-green-ammonia.yaml`.
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false

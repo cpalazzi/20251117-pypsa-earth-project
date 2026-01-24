@@ -2,7 +2,7 @@
 # Mirrors config/yearly-threehour-zero-co2.yaml but without the explicit zero CO2 constraint.
 # Use with `snakemake --configfile config/yearly-threehour.yaml`.
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false

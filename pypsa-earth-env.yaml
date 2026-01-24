@@ -5,6 +5,7 @@ channels:
   - bioconda
   - https://conda.anaconda.org/gurobi
 dependencies:
+  - pypsa=0.8.0
   - _python_abi3_support=1.0=hd8ed1ab_2
   - adwaita-icon-theme=49.0=unix_0
   - affine=2.4.0=pyhd8ed1ab_1

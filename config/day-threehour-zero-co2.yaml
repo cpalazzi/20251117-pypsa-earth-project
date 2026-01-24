@@ -2,7 +2,7 @@
 # Derived from config/month-threehour-zero-co2.yaml but restricted to the first
 # 24 hours of 2013 to gauge baseline solver performance.
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false
