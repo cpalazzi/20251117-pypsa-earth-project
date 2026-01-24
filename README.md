@@ -140,6 +140,24 @@ export GRB_LICENSE_FILE=/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic
 cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 ```
 
+### Important: Configuration alignment for overrides
+
+⚠️ **Keep config overrides in sync with base configs**
+
+When using `--configfile config/overrides/core-technologies.yaml` (or any override), ensure that the **geographic scope** (countries list) and **nodal clustering** (clusters setting) remain **aligned with the base config**. The override files do NOT inherit the base config's countries/clusters settings—they are layered on top and can silently override them.
+
+For example:
+- `config/day-core-technologies.yaml` defines a **17-country scope with 70 clusters**.
+- `config/overrides/core-technologies.yaml` **must also list those same 17 countries and 70 clusters**.
+- If you update the base config's country list but forget to update the override, the override will (unintentionally) expand the scope or mismatch clustering.
+
+**Current alignment** (as of January 2026):
+- **day-threehour.yaml**: 17 countries, 70 clusters
+- **day-core-technologies.yaml**: 17 countries, 70 clusters (aligned)
+- **overrides/core-technologies.yaml**: 17 countries, 70 clusters (aligned)
+
+**If you modify any config's geographic or clustering settings**, search for the same settings in all related override files and update them to match. The comment headers in each override file explicitly state which base config they are paired with and what scope is expected.
+
 ### 3. Baseline single-snapshot Europe run
 
 1. Copy `config/default-single-timestep.yaml` into the PyPSA-Earth root (`config/` already exists). It pins:
@@ -219,6 +237,9 @@ cd /data/engs-df-green-ammonia/engs2523/pypsa-earth
 - **`retrieve_cost_data` fails with a `FileNotFoundError`**: Root cause is a PyPSA-Earth `Snakefile` bug when moving Snakemake `HTTP.remote(..., keep_local=True)` inputs.
    - Fix is tracked in the separate `pypsa-earth` repo (not this overlay): open a PR from branch `fix/retrieve-cost-data-local-path` in `https://github.com/cpalazzi/pypsa-earth`.
    - Upstream reference (buggy line): `https://github.com/pypsa-meets-earth/pypsa-earth/blob/main/Snakefile#L445-L449`.
+   - TODO: submit the local PyPSA-Earth patches from `/Users/carlopalazzi/programming/pypsa_models/pypsa-earth` upstream once validated (including the retrieve_cost_data fix).
+
+- **`cluster_network` fails with an assertion about `n_clusters`**: For the reduced country list in [config/day-threehour.yaml](config/day-threehour.yaml), Snakemake enforces a minimum of 70 clusters. Set `scenario.clusters` to 70+ (50 will fail with “Number of clusters must be 70 <= n_clusters <= …”).
 
 - **Renewable profiles take hours**: Reducing `clusters` speeds the *network size*, but the atlite availability-matrix step can still dominate runtime because it’s upstream of the solve.
 

@@ -1,5 +1,8 @@
 # Single-day configuration focused on a restricted technology set for quicker debugging runs.
-# Use via `snakemake --configfile config/day-core-technologies.yaml`.
+# Geographic scope: reduced to 17 countries for faster preprocessing (231 grid cells vs 21,633).
+# Technology restriction: limits generators and storage to core tech set via limit_core_technologies.py.
+# Use via: `snakemake --configfile config/day-core-technologies.yaml`
+# or with overrides: `snakemake --configfile config/default-single-timestep.yaml --configfile config/overrides/core-technologies.yaml`
 
 version: 0.7.0
 foresight: overnight
@@ -16,40 +19,22 @@ summary_dir: results/
 
 regions: ["europe"]
 countries:
-  - "AL"
   - "AT"
-  - "BA"
-  - "BE"
   - "BG"
-  - "CH"
   - "CZ"
   - "DE"
   - "DK"
-  - "EE"
   - "ES"
-  - "FI"
   - "FR"
   - "GB"
   - "GR"
-  - "HR"
   - "HU"
-  - "IE"
   - "IT"
-  - "LT"
-  - "LU"
-  - "LV"
-  - "ME"
-  - "MK"
-  - "NL"
-  - "NO"
   - "PL"
   - "PT"
   - "RO"
   - "RS"
   - "SE"
-  - "SI"
-  - "SK"
-  - "XK"
 
 snapshots:
   start: "2013-01-01 00:00"
@@ -57,35 +42,48 @@ snapshots:
   inclusive: "left"
 
 enable:
-  retrieve_databundle: false
+  retrieve_databundle: true
   retrieve_databundle_sector: false
-  retrieve_cost_data: false
-  download_osm_data: false
+  retrieve_cost_data: true
+  download_osm_data: true
   build_natura_raster: false
   build_cutout: false
 
 scenario:
   simpl: [""]
   ll: ["copt"]
-  clusters: [140]  # match baseline resolution (>= 108 minimum for this country set)
-  opts: ["Co2L-3h"]  # retain the standard PyPSA-Earth preset (CO2 cap + 3 h aggregation)
+  clusters: [70]  # minimum for this reduced country list (cluster_network requires >= 70)
+  opts:
+    - "Co2L-3h"  # Co2L applies the PyPSA-Earth CO2 cap preset; -3h coarsens snapshots into 3 h blocks
 
 clustering:
   focus_weights:
-    DE: 0.0517
-    FR: 0.0422
+    DE: 0.0417
+    FR: 0.0492
     GB: 0.0418
-    IT: 0.0366
+    IT: 0.0416
     ES: 0.0294
     PL: 0.0236
     NL: 0.0111
-    SE: 0.0065
+    SE: 0.0045
     DK: 0.0037
     NO: 0.0034
 
 atlite:
-    name: gurobi
-    options: gurobi-default
+  nprocesses: 4
+  cutouts:
+    cutout-2013-era5:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      time: ["2013-01-01", "2013-01-02"]
+  default_cutout: cutout-2013-era5
+
+load_options:
+  ssp: "ssp2-2.6"
+  weather_year: 2013
+  prediction_year: 2030
+  scale: 1
 solving:
   options:
     formulation: kirchhoff
@@ -93,15 +91,16 @@ solving:
     noisy_costs: false
     clip_p_max_pu: 0.01
     min_iterations: 1
-    max_iterations: 1
+    max_iterations: 2
     skip_iterations: true
     track_iterations: false
     extra_functionality:
       - scripts/extra/limit_core_technologies.py::limit_core_technologies
   solver:
+    # Use Gurobi on ARC for faster solve times.
     name: gurobi
     options: gurobi-default
-  mem: 16000
+  mem: 24000
 
 logging:
   level: INFO

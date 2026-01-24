@@ -1,6 +1,10 @@
 # Layer this on top of config/default-single-timestep.yaml to keep only a
 # curated set of generation and storage carriers. Intended as the default
 # "extra functionality" test that exercises scripts/extra/limit_core_technologies.py.
+#
+# IMPORTANT: This override should use the same geographic and nodal scope as the base config.
+# When updating base config countries or clusters, ensure they match here.
+# Current alignment: 17-country reduced set, 70 clusters (matching day-threehour.yaml).
 
 run:
   name: europe-day-core-tech
@@ -8,45 +12,27 @@ run:
 
 regions: ["europe"]
 countries:
-  - "AL"
   - "AT"
-  - "BA"
-  - "BE"
   - "BG"
-  - "CH"
   - "CZ"
   - "DE"
   - "DK"
-  - "EE"
   - "ES"
-  - "FI"
   - "FR"
   - "GB"
   - "GR"
-  - "HR"
   - "HU"
-  - "IE"
   - "IT"
-  - "LT"
-  - "LU"
-  - "LV"
-  - "ME"
-  - "MK"
-  - "NL"
-  - "NO"
   - "PL"
   - "PT"
   - "RO"
   - "RS"
   - "SE"
-  - "SI"
-  - "SK"
-  - "XK"
 
 scenario:
   simpl: [""]
   ll: ["copt"]
-  clusters: [140]
+  clusters: [70]
   opts:
     - "Co2L-3h"
 
@@ -63,20 +49,8 @@ solving:
     extra_functionality:
       - scripts/extra/limit_core_technologies.py::limit_core_technologies
   solver:
-    name: highs
-    options: highs-default
-  solver_options:
-    highs-default:
-      threads: 4
-      solver: ipm
-      run_crossover: off
-      small_matrix_value: 1e-6
-      large_matrix_value: 1e9
-      primal_feasibility_tolerance: 1e-3
-      dual_feasibility_tolerance: 1e-3
-      ipm_optimality_tolerance: 1e-2
-      parallel: on
-      random_seed: 123
+    name: gurobi
+    options: gurobi-default
   mem: 24000
 
 custom:
