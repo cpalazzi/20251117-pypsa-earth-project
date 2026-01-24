@@ -4,7 +4,7 @@
 # Use via: `snakemake --configfile config/day-core-technologies.yaml`
 # or with overrides: `snakemake --configfile config/default-single-timestep.yaml --configfile config/overrides/core-technologies.yaml`
 
-version: 0.7.0
+version: 0.8.0
 foresight: overnight
 
 tutorial: false
