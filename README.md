@@ -66,6 +66,14 @@ The sections below dive into each step, list the exact commands, and explain how
 
 ## Environments and data prerequisites
 
+### Environment Strategy: venv locally, conda on ARC
+
+**Why two approaches?**
+- **Local (`.venv`** with pip): Lightweight, just for analysis. No Gurobi, Snakemake, or heavy GIS dependencies.
+- **ARC (conda)**: Full featured, includes Gurobi, Snakemake, and preprocessing tools.
+
+Both pin **PyPSA 0.28.0**.
+
 ### Local (laptop/workstation) environment for analysis
 
 For local analysis (e.g., reading and plotting results), use the `.venv` venv with lightweight dependencies:
@@ -78,10 +86,16 @@ pip install -r requirements.txt
 
 This installs PyPSA 0.28.0, xarray, geopandas, matplotlib, and other essentials for downloading and analyzing results. No Gurobi, Snakemake, or heavy GIS compilation needed locally.
 
-### ARC remote environment for simulation
-- **Solver**: Gurobi is available as a module on ARC. The baseline config now uses Gurobi by default; HiGHS remains as a commented fallback.
-- **Data**: The baseline config keeps `enable.retrieve_databundle` true so the required (10°×10°) cutouts download automatically. If you already have a populated `resources/` folder on ARC, you may set those flags to false for faster reruns.
-- **Storage**: ARC home directories (~15 GB) fill up instantly. Always work in `$DATA/<project>/<user>` (for OXGATE this is `/data/engs-df-green-ammonia/<ox-id>`). Consider creating `$DATA/engs-df-green-ammonia/<ox-id>/pypsa-earth` for the repo and `$DATA/engs-df-green-ammonia/<ox-id>/envs` for conda prefixes.
+### ARC remote environment for simulation (conda-based)
+
+On ARC, we use conda to manage the full PyPSA-Earth environment. This includes Snakemake, Gurobi solver, and all preprocessing tools. The environment is built from `envs/environment.yaml` in the PyPSA-Earth repo.
+
+**Key points**:
+- **Source of truth**: `envs/environment.yaml` in the PyPSA-Earth repo
+- **Build process**: Use `scripts/arc/build-pypsa-earth-env` Slurm script
+- **Solver**: Gurobi (module on ARC); HiGHS as fallback
+- **Data**: Auto-downloads cutouts if `enable.retrieve_databundle: true`
+- **Storage**: Work in `$DATA/<project>/<user>`, not home (~15 GB limit)
 
 ## Step-by-step instructions
 
