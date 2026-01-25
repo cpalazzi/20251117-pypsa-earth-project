@@ -1,0 +1,16 @@
+# Local analysis environment for pypsa-earth results
+# Pinned to be compatible with PyPSA-Earth's environment.yaml (pypsa>=0.25, <=0.30.3)
+pypsa==0.28.0
+xarray>=2023.11.0
+pandas>=1.0
+numpy<2
+geopandas>=1
+fiona>=1.10
+rasterio
+rioxarray
+netcdf4
+matplotlib
+shapely!=2.0.4
+scipy<1.16
+networkx
+pyproj

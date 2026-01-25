@@ -66,7 +66,19 @@ The sections below dive into each step, list the exact commands, and explain how
 
 ## Environments and data prerequisites
 
-- **Python environment**: PyPSA-Earth currently ships `envs/environment.yaml`. ARC already exposes several Anaconda versions; run `module spider Anaconda3` to see the newest release, then `module load <latest>` before creating the env. If you want the sbatch job to load a specific version automatically, set `ARC_ANACONDA_MODULE=Anaconda3/<version>` before calling `sbatch`.
+### Local (laptop/workstation) environment for analysis
+
+For local analysis (e.g., reading and plotting results), use the `.venv` venv with lightweight dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # on Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+This installs PyPSA 0.28.0, xarray, geopandas, matplotlib, and other essentials for downloading and analyzing results. No Gurobi, Snakemake, or heavy GIS compilation needed locally.
+
+### ARC remote environment for simulation
 - **Solver**: Gurobi is available as a module on ARC. The baseline config now uses Gurobi by default; HiGHS remains as a commented fallback.
 - **Data**: The baseline config keeps `enable.retrieve_databundle` true so the required (10°×10°) cutouts download automatically. If you already have a populated `resources/` folder on ARC, you may set those flags to false for faster reruns.
 - **Storage**: ARC home directories (~15 GB) fill up instantly. Always work in `$DATA/<project>/<user>` (for OXGATE this is `/data/engs-df-green-ammonia/<ox-id>`). Consider creating `$DATA/engs-df-green-ammonia/<ox-id>/pypsa-earth` for the repo and `$DATA/engs-df-green-ammonia/<ox-id>/envs` for conda prefixes.
