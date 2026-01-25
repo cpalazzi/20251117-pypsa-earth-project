@@ -63,8 +63,8 @@ Current 8-hour walltime is **insufficient for 34-country scope**.
 ```
 This allows the full 34-country analysis to complete.
 
-### Option 2: Reduce Geographic Scope (Recommended for Faster Testing)
-Update `config/day-core-technologies.yaml` to match the faster `config/day-threehour.yaml` country list:
+### Option 2: Reduce Geographic Scope (Recommended for Faster Testing) ✓ **IMPLEMENTED**
+Updated `config/day-core-technologies.yaml` to match the faster `config/day-threehour.yaml` country list (17 countries, ~231 grid cells):
 
 ```yaml
 countries:
@@ -78,6 +78,33 @@ countries:
   - "GB"
   - "GR"
   - "HU"
+  - "IT"
+  - "PL"
+  - "PT"
+  - "RO"
+  - "RS"
+  - "SE"
+```
+
+## Follow-up: Job 11194049 Failure (24 Jan 2026)
+
+**Issue**: Job 11194049 failed with clustering constraint error:
+```
+AssertionError: Number of clusters must be 109 <= n_clusters <= 15943 for this selection of countries.
+```
+
+**Root Cause**: ARC's `config/day-core-technologies.yaml` was **stale** (34 countries, version 0.7.0) while local version had been updated to 17 countries (version 0.8.0). The clustering rule requires **n_clusters ∈ [109, 15943]** for 34 countries but fails with only **70 clusters** when the network is preprocessed with 34 countries then clustering is asked for only 70.
+
+**Fix Applied**:
+1. Resynced all config files from `pypsa-earth-runtools-crow` overlay repo to ARC:
+   ```bash
+   rsync -av ../pypsa-earth-runtools-crow/config/ ./config/
+   ```
+2. Verified updated configs are now in place (17 countries, 70 clusters, version 0.8.0)
+3. Unlocked stale Snakemake lock from failed run
+4. Resubmitted job as **Job 7029631** on HTC cluster (PENDING)
+
+**Key Lesson**: Always resync overlay config files to ARC after making local changes. The overlay repo is the source of truth for config management.
   - "IT"
   - "PL"
   - "PT"
