@@ -36,26 +36,27 @@ scenario:
   opts:
     - "Co2L-3h"
 
-clustering:
-  focus_weights:
-    DE: 0.0417
-    FR: 0.0492
-    GB: 0.0418
-    IT: 0.0416
-    ES: 0.0294
-    PL: 0.0236
-    NL: 0.0111
-    SE: 0.0045
-    DK: 0.0037
-    NO: 0.0034
-    AT: 0.0055
-    BG: 0.0030
-    CZ: 0.0050
-    GR: 0.0040
-    HU: 0.0040
-    PT: 0.0035
-    RO: 0.0045
-    RS: 0.0025
+# Focus weights for clustering - distributes n_clusters across countries proportionally
+# Format expected by PyPSA-Earth cluster_network script: top-level config key
+focus_weights:
+  DE: 0.0417
+  FR: 0.0492
+  GB: 0.0418
+  IT: 0.0416
+  ES: 0.0294
+  PL: 0.0236
+  NL: 0.0111
+  SE: 0.0045
+  DK: 0.0037
+  NO: 0.0034
+  AT: 0.0055
+  BG: 0.0030
+  CZ: 0.0050
+  GR: 0.0040
+  HU: 0.0040
+  PT: 0.0035
+  RO: 0.0045
+  RS: 0.0025
 
 solving:
   options:

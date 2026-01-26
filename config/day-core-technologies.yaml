@@ -56,18 +56,19 @@ scenario:
   opts:
     - "Co2L-3h"  # Co2L applies the PyPSA-Earth CO2 cap preset; -3h coarsens snapshots into 3 h blocks
 
-clustering:
-  focus_weights:
-    DE: 0.0417
-    FR: 0.0492
-    GB: 0.0418
-    IT: 0.0416
-    ES: 0.0294
-    PL: 0.0236
-    NL: 0.0111
-    SE: 0.0045
-    DK: 0.0037
-    NO: 0.0034
+# Focus weights for clustering - distributes n_clusters across countries proportionally
+# Format expected by PyPSA-Earth cluster_network script: top-level config key
+focus_weights:
+  DE: 0.0417
+  FR: 0.0492
+  GB: 0.0418
+  IT: 0.0416
+  ES: 0.0294
+  PL: 0.0236
+  NL: 0.0111
+  SE: 0.0045
+  DK: 0.0037
+  NO: 0.0034
 
 atlite:
   nprocesses: 4
