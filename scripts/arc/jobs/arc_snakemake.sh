@@ -113,6 +113,20 @@ if [[ "${ARC_STAGE_DATA:-0}" == "1" ]]; then
   fi
 fi
 
+# CRITICAL: Copy the base config to config.yaml so PyPSA-Earth uses it as foundation.
+# PyPSA-Earth auto-loads config.yaml and our --configfile args extend it, but nested
+# dict merging doesn't work properly. Copying the first config ensures base values
+# like scenario.clusters are set correctly before scenario overrides are applied.
+if [[ ${#CONFIG_FILES[@]} -gt 0 ]]; then
+  echo "Copying base config ${CONFIG_FILES[0]} to config.yaml for proper merge behavior"
+  cp "${CONFIG_FILES[0]}" config.yaml
+  # Shift out the first config file since it's now the base
+  CONFIG_ARGS=()
+  for ((i=1; i<${#CONFIG_FILES[@]}; i++)); do
+    CONFIG_ARGS+=("--configfile" "${CONFIG_FILES[i]}")
+  done
+fi
+
 run_snakemake() {
   snakemake \
     "$@" \
@@ -126,3 +140,4 @@ run_snakemake() {
 }
 
 run_snakemake solve_all_networks "${CONFIG_ARGS[@]}"
+
