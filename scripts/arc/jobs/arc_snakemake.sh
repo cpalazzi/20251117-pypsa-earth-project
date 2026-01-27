@@ -61,6 +61,11 @@ source activate "$TOOLS_ENV"
 eval "$(micromamba shell hook --shell bash)"
 micromamba activate "$PYPSA_ENV"
 
+# Set Gurobi license file path for ARC environment
+# Academic WLS license stored in $DATA/licenses
+export GRB_LICENSE_FILE="${GRB_LICENSE_FILE:-/data/engs-df-green-ammonia/engs2523/licenses/gurobi.lic}"
+echo "Using Gurobi license: $GRB_LICENSE_FILE"
+
 # Determine a sensible default working directory: prefer ARC_WORKDIR, then
 # SLURM_SUBMIT_DIR (where sbatch was invoked), otherwise fall back to the
 # repository root (three directories above this `scripts/arc/jobs/` folder).
