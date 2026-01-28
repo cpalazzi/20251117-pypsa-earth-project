@@ -47,27 +47,47 @@ scenario:
   opts:
     - "Co2L-3h"  # CO2 limit + 3-hour time resolution
 
-# Focus weights distribute 70 clusters proportionally across 17 countries
-# Weights MUST sum to <= 1.0 (normalized distribution)
-# Based on relative electricity demand/population to ensure proper clustering
+# Clustering options for controlling node distribution
+# PyPSA-Earth will use focus_weights to distribute clusters proportionally across countries
+cluster_options:
+  focus_weights:
+    DE: 0.1558  # Germany: ~11 nodes
+    FR: 0.1840  # France: ~13 nodes
+    GB: 0.1563  # UK: ~11 nodes
+    IT: 0.1556  # Italy: ~11 nodes
+    ES: 0.1099  # Spain: ~8 nodes
+    PL: 0.0883  # Poland: ~6 nodes
+    SE: 0.0168  # Sweden: ~1 node
+    DK: 0.0138  # Denmark: ~1 node
+    AT: 0.0206  # Austria: ~1 node
+    BG: 0.0112  # Bulgaria: ~1 node
+    CZ: 0.0187  # Czech Republic: ~1 node
+    GR: 0.0150  # Greece: ~1 node
+    HU: 0.0150  # Hungary: ~1 node
+    PT: 0.0131  # Portugal: ~1 node
+    RO: 0.0168  # Romania: ~1 node
+    RS: 0.0090  # Serbia: ~1 node
+    # Total: 0.9999 <= 1.0 (normalized)
+
+# Legacy focus_weights at root level for backwards compatibility (will be deprecated)
+# Kept here as fallback - cluster_options.focus_weights takes precedence
 focus_weights:
-  DE: 0.1558  # Germany: ~11 nodes
-  FR: 0.1840  # France: ~13 nodes
-  GB: 0.1563  # UK: ~11 nodes
-  IT: 0.1556  # Italy: ~11 nodes
-  ES: 0.1099  # Spain: ~8 nodes
-  PL: 0.0883  # Poland: ~6 nodes
-  SE: 0.0168  # Sweden: ~1 node
-  DK: 0.0138  # Denmark: ~1 node
-  AT: 0.0206  # Austria: ~1 node
-  BG: 0.0112  # Bulgaria: ~1 node
-  CZ: 0.0187  # Czech Republic: ~1 node
-  GR: 0.0150  # Greece: ~1 node
-  HU: 0.0150  # Hungary: ~1 node
-  PT: 0.0131  # Portugal: ~1 node
-  RO: 0.0168  # Romania: ~1 node
-  RS: 0.0090  # Serbia: ~1 node
-  # Total: 0.9999 <= 1.0 (normalized)
+  DE: 0.1558
+  FR: 0.1840
+  GB: 0.1563
+  IT: 0.1556
+  ES: 0.1099
+  PL: 0.0883
+  SE: 0.0168
+  DK: 0.0138
+  AT: 0.0206
+  BG: 0.0112
+  CZ: 0.0187
+  GR: 0.0150
+  HU: 0.0150
+  PT: 0.0131
+  RO: 0.0168
+  RS: 0.0090
 
 # ============================================================================
 # TIME HORIZON (shared across all scenarios)
