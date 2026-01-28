@@ -34,30 +34,58 @@ PyPSA-Earth's clustering algorithm enforces: **`sum(focus_weights) <= 1.0`**
 
 The weights are *proportions* (not absolute numbers), distributing 70 clusters across countries. Each weight represents the fraction of clusters for that country.
 
+### ⚠️ CRITICAL: Configuration Location (Root Cause of Job 11203671 Failure)
+
+**WRONG** (being silently ignored by PyPSA-Earth):
+```yaml
+focus_weights:
+  DE: 0.1558
+  FR: 0.1840
+  # ... at root level
+```
+
+**CORRECT** (what PyPSA-Earth actually reads):
+```yaml
+cluster_options:
+  focus_weights:
+    DE: 0.1558
+    FR: 0.1840
+    # ... nested under cluster_options
+```
+
+**Why**: PyPSA-Earth's clustering algorithm calls `config.get("cluster_options", {}).get("focus_weights", None)`. Root-level `focus_weights` was **never being loaded**.
+
+**Backwards Compatibility**: PyPSA-Earth has fallback logic to check root-level for `focus_weights`, but it's not reliable. **Always nest under `cluster_options:`**.
+
+**Discovery**: Job 11203671 produced:
+- Expected: Sweden 1 node (SE weight=0.0168), Denmark 1 node (DK weight=0.0138)
+- Actual: Sweden 7 nodes, Denmark 16 nodes
+- Root cause: focus_weights ignored, algorithm fell back to default (equal distribution or geography-based)
+
 ### Current Weights (base-europe17-70n-day.yaml)
 
 ```yaml
-focus_weights:
-  DE: 0.1558  # Germany:     ~11 clusters
-  FR: 0.1840  # France:      ~13 clusters
-  GB: 0.1563  # UK:          ~11 clusters
-  IT: 0.1556  # Italy:       ~11 clusters
-  ES: 0.1099  # Spain:       ~8 clusters
-  PL: 0.0883  # Poland:      ~6 clusters
-  SE: 0.0168  # Sweden:      ~1 cluster (CRITICAL)
-  DK: 0.0138  # Denmark:     ~1 cluster
-  AT: 0.0206  # Austria:     ~1 cluster
-  BG: 0.0112  # Bulgaria:    ~1 cluster
-  CZ: 0.0187  # Czech Rep:   ~1 cluster
-  GR: 0.0150  # Greece:      ~1 cluster
-  HU: 0.0150  # Hungary:     ~1 cluster
-  PT: 0.0131  # Portugal:    ~1 cluster
-  RO: 0.0168  # Romania:     ~1 cluster
-  RS: 0.0090  # Serbia:      ~1 cluster
-  # Sum: 0.9999 <= 1.0 ✓
+cluster_options:
+  distribute_clusters: ["load"]  # Distribute based on electricity load
+  focus_weights:
+    DE: 0.1558  # Germany:     ~11 clusters
+    FR: 0.1840  # France:      ~13 clusters
+    GB: 0.1563  # UK:          ~11 clusters
+    IT: 0.1556  # Italy:       ~11 clusters
+    ES: 0.1099  # Spain:       ~8 clusters
+    PL: 0.0883  # Poland:      ~6 clusters
+    SE: 0.0168  # Sweden:      ~1 cluster (CRITICAL)
+    DK: 0.0138  # Denmark:     ~1 cluster
+    AT: 0.0206  # Austria:     ~1 cluster
+    BG: 0.0112  # Bulgaria:    ~1 cluster
+    CZ: 0.0187  # Czech Rep:   ~1 cluster
+    GR: 0.0150  # Greece:      ~1 cluster
+    HU: 0.0150  # Hungary:     ~1 cluster
+    PT: 0.0131  # Portugal:    ~1 cluster
+    RO: 0.0168  # Romania:     ~1 cluster
+    RS: 0.0090  # Serbia:      ~1 cluster
+    # Sum: 0.9999 <= 1.0 ✓
 ```
-
-**Key insight**: Sweden gets weight 0.0168 (1 cluster out of 70) — this is why previous runs were creating 7+ nodes for Sweden. Too much weight = too many clusters = inefficient modeling.
 
 ### Past Failures
 
@@ -66,6 +94,13 @@ focus_weights:
 AssertionError: The sum of focus_weights must be less than or equal to 1.
 ```
 Cause: Sum was 1.0004 (rounding error). Fixed by adjusting DE and RS to sum to 0.9999.
+
+**Job 11203671** (CLUSTERING FAILURE):
+```
+Expected: 70 clusters distributed per focus_weights
+Actual: 70 clusters, but wrong distribution (SE: 7 nodes, DK: 16 nodes, FR: 7 nodes)
+```
+Root cause: `focus_weights` at root level (not in `cluster_options:`) → ignored by PyPSA-Earth → algorithm fell back to default distribution.
 
 ## PyPSA-Earth Integration
 
