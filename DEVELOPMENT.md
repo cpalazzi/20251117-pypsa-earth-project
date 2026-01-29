@@ -267,6 +267,68 @@ Each fix was validated with test jobs (11199899, 7030108, 11201804, 11201806, 11
 - PyPSA fork (this project): https://github.com/cpalazzi/pypsa-earth
 - Gurobi WLS licensing: https://www.gurobi.com/academia/
 
+## Project Architecture: Overlay vs. Monolithic
+
+### Current Setup: Overlay Pattern
+
+**Directory Layout**:
+```
+pypsa-earth-runtools-crow/        (this repo - project-specific overlay)
+  ├── config/                     # Configuration overrides
+  ├── scripts/arc/                # ARC job submission wrappers
+  ├── notebooks/                  # Analysis & validation
+  └── results/                    # Output networks and plots
+
+pypsa-earth/                       (upstream repo - generic tool)
+  ├── config.default.yaml         # Base PyPSA-Earth configuration
+  ├── Snakefile                   # Main build rules
+  ├── scripts/cluster_network.py  # Clustering logic
+  └── ...
+```
+
+**How It Works**:
+1. User runs snakemake with configs from `pypsa-earth-runtools-crow/config/`
+2. PyPSA-Earth's Snakefile uses its `config.default.yaml` as base
+3. Overlay configs merge with defaults via `--configfile` arguments
+4. PyPSA-Earth scripts execute with merged configuration
+
+### Pros of Overlay Pattern ✅
+
+1. **Upstream Independence**: No fork/patch maintenance; easy to track PyPSA-Earth updates
+2. **Experiment Isolation**: Multiple projects can use same PyPSA-Earth install; each keeps own config
+3. **Clear Separation**: PyPSA-Earth = generic tool; this repo = specific study setup
+4. **Reduced Complexity**: No custom patches to maintain; no version conflicts
+
+### Cons of Overlay Pattern ❌
+
+1. **Config Discoverability**: Parameters scattered across two repos; hard to find where to configure
+   - **Our Bug**: Typo `distribute_clusters` vs `distribute_cluster` found via source inspection
+2. **Fragility**: Relative path bugs, config merging edge cases, silent failures
+3. **Debugging Overhead**: Must inspect PyPSA-Earth source to understand behavior
+4. **Limited Customization**: Can only override config; can't modify PyPSA-Earth logic
+
+### Why We Keep the Overlay
+
+The overlay pattern is appropriate here because:
+- We're a research study, not a PyPSA-Earth fork
+- Want to stay compatible with upstream updates (others will reproduce our work)
+- Config-only customization usually works (typo was our mistake, not the architecture)
+- Other researchers can easily adapt our approach
+
+### Improvements Made
+
+1. **Config Validation**: Check parameter names and values before submission
+2. **Documentation**: All parameters documented in DEVELOPMENT.md
+3. **Error Checking**: Pre-flight checks detect common mistakes
+4. **Upstream Contribution**: Submit bug reports to PyPSA-Earth for parameter documentation
+
+### Alternative: Monolithic (fork PyPSA-Earth)
+
+**Pros**: Single source of truth, better IDE support, clearer error messages, full customization
+**Cons**: Maintenance burden, hard to track upstream, less reusable, publishing friction
+
+Not pursued because: Our customizations are purely configuration; no logic changes needed.
+
 ## See Also
 
 - [README.md](README.md) — Quick start and common tasks
